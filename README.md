@@ -2,7 +2,7 @@
 
 Moderner PlantUML-Editor auf Basis von **Angular 22**, **Angular Material 3** und der offiziellen
 JavaScript-Engine der PlantUML-Entwickler ([`@plantuml/core`](https://www.npmjs.com/package/@plantuml/core),
-per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser – ohne Server, Java oder Graphviz.
+per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser, ohne Server, Java oder Graphviz.
 
 ## Features
 
@@ -21,8 +21,8 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser 
   unterstützt.
 - **Export** als SVG, PNG (1×/2×/4×, optional transparent), Kopieren in die Zwischenablage, Quelltext als `.puml`.
 - **Kontextmenü in der Vorschau** (Klick/Rechtsklick/Long-Press auf ein Element):
-  - _Zum Editor springen_ – markiert die zugehörige Zeile und scrollt dorthin.
-  - _Style anpassen_ – Live-Styling des Elements (Hintergrund, Rahmen, Textfarbe, Schrift, Schriftgröße,
+  - _Zum Editor springen_: markiert die zugehörige Zeile und scrollt dorthin.
+  - _Style anpassen_: Live-Styling des Elements (Hintergrund, Rahmen, Textfarbe, Schrift, Schriftgröße,
     Schriftstil, Eckenradius, Linienstärke/-art, Schatten, Innenabstand, Ausrichtung) bzw. von
     Verbindungen (Farbe, Linienart, Stärke).
   - Rechtsklick auf freie Diagrammfläche → _Diagramm-Style_: Theme, handgezeichneter Stil sowie Styles für
@@ -35,7 +35,7 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser 
   gespeicherten Diagrammen (Vorschaubild, Suche, Umbenennen, Duplizieren, Löschen mit Rückgängig).
   Der aktuelle Arbeitsstand wird zusätzlich automatisch als Entwurf gesichert.
 - **Mehrsprachig** (Deutsch, Englisch): Standard ist die Sprache des Systems/Browsers, unter
-  _Mehr → Sprache_ lässt sie sich festlegen. Der Wechsel greift sofort, ohne Neuladen – inklusive
+  _Mehr → Sprache_ lässt sie sich festlegen. Der Wechsel greift sofort und ohne Neuladen, inklusive
   Autovervollständigung, Vorlagen und Fehlermeldungen.
 
 ## Wie das Styling funktioniert
@@ -85,7 +85,7 @@ Sprachen sind als `Translations` typisiert, sodass fehlende Schlüssel ein Compi
 Neue Sprache hinzufügen:
 
 1. `src/app/i18n/locales/<code>.ts` anlegen (z. B. `en.ts` kopieren) und übersetzen.
-2. In `src/app/i18n/languages.ts` einen Eintrag in `LANGUAGES` ergänzen – bei Bedarf mit
+2. In `src/app/i18n/languages.ts` einen Eintrag in `LANGUAGES` ergänzen, bei Bedarf mit
    `ngLocale` für Angulars Zahlen-/Datumsformate.
 
 ## SEO & Deployment
@@ -108,11 +108,17 @@ Die App wird unter **https://plantuml-editor.com** bereitgestellt (Origin in `co
 
 ## Datenschutz & Fonts
 
-Die App lädt nichts von fremden Servern: Inter und JetBrains Mono kommen aus
+Die App lädt von sich aus nichts von fremden Servern: Inter und JetBrains Mono kommen aus
 `@fontsource-variable/*`, die Icons aus einem Subset von _Material Symbols Rounded_
 (`src/fonts/material-symbols-rounded.woff2`, ~28 KB statt ~5 MB), eingebunden in `src/fonts.scss`.
 Die Datenschutzerklärung liegt statisch unter `public/privacy.html` bzw. `public/datenschutz.html`
-(im Menü _Mehr → Datenschutz_).
+(im Menü _Mehr → Datenschutz_), die Nutzungsbedingungen unter `public/terms.html` bzw.
+`public/nutzungsbedingungen.html` (_Mehr → Nutzungsbedingungen_) und die Info-Seite unter
+`public/about.html` bzw. `public/ueber.html` (_Mehr → Über dieses Projekt_).
+
+Einzige Ausnahme: `!include <…>` aus der PlantUML-Standardbibliothek lädt der Browser des
+Nutzers von `plantuml.github.io` (GitHub, USA). Das ist in Abschnitt 5 der Datenschutzerklärung
+beschrieben; die mitgelieferten Vorlagen verwenden die Standardbibliothek bewusst nicht.
 
 Das Icon-Subset enthält alle Icon-Namen, die im Quelltext unter `src/` vorkommen. **Nach dem Hinzufügen
 neuer Icons** neu erzeugen:

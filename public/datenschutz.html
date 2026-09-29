@@ -6,7 +6,7 @@
     <title>Datenschutzerklärung | PlantUML Power Editor</title>
     <meta
       name="description"
-      content="Datenschutzerklärung des PlantUML Power Editors: keine Cookies, kein Tracking, keine Drittanbieter – Diagramme bleiben in deinem Browser."
+      content="Datenschutzerklärung des PlantUML Power Editors: keine Cookies, kein Tracking, keine Werbung. Diagramme bleiben in deinem Browser."
     />
     <link rel="canonical" href="https://plantuml-editor.com/datenschutz.html" />
     <link rel="alternate" hreflang="de" href="https://plantuml-editor.com/datenschutz.html" />
@@ -28,12 +28,13 @@
         <strong>Kurz gesagt:</strong> Diese Website verarbeitet keine personenbezogenen Daten, die über
         das Ausliefern der Web-Ressourcen hinausgehen. Es gibt keine Cookies, kein Tracking, keine
         Analyse-Tools, keine Werbung, keine Anmeldung und keine eingebundenen Inhalte von
-        Drittanbietern. Deine Diagramme verlassen deinen Browser nicht.
+        Drittanbietern. Deine Diagramme verlassen deinen Browser nicht. Ein fremder Server wird nur
+        kontaktiert, wenn du selbst externe Inhalte in ein Diagramm einbindest (Abschnitt 5).
       </p>
 
       <h2>1. Verantwortlicher</h2>
       <p>
-        mseiche<br />
+        Manuel Seiche (<a href="https://mseiche.de">mseiche.de</a>)<br />
         Kontakt:
         <a href="https://github.com/Hakenadu/plantuml-power-editor/issues">GitHub-Issues des Projekts</a>
       </p>
@@ -52,9 +53,10 @@
         lit. f DSGVO; das berechtigte Interesse liegt im Bereitstellen der Website.
       </p>
       <p>
-        Alle Ressourcen – einschließlich Schriftarten und Icons – werden von diesem Server
-        ausgeliefert. Es werden keine Inhalte von externen Servern (z.&nbsp;B. Google Fonts oder CDNs)
-        nachgeladen.
+        Alle Ressourcen der Anwendung, einschließlich Schriftarten und Icons, werden von diesem
+        Server ausgeliefert. Von sich aus lädt die Anwendung keine Inhalte von externen Servern
+        (z.&nbsp;B. Google Fonts oder CDNs) nach. Die einzige Ausnahme sind Inhalte, die du selbst in
+        ein Diagramm einbindest (Abschnitt 5).
       </p>
 
       <h2>3. Verarbeitung deiner Diagramme</h2>
@@ -74,16 +76,32 @@
       </p>
       <p>
         Die Speicherung ist für die von dir ausdrücklich gewünschte Funktion erforderlich (§ 25 Abs. 2
-        Nr. 2 TDDDG). Du kannst die Daten jederzeit löschen – einzeln in der Anwendung oder vollständig
+        Nr. 2 TDDDG). Du kannst die Daten jederzeit löschen, einzeln in der Anwendung oder vollständig
         über die Einstellungen deines Browsers („Websitedaten löschen“). Cookies werden nicht gesetzt.
       </p>
 
       <h2>5. Externe Inhalte, die du selbst einbindest</h2>
       <p>
-        Verweist du in einem Diagramm selbst auf Ressourcen im Internet (z.&nbsp;B. per
-        <code>!include https://…</code> oder über Bild-URLs), lädt dein Browser diese direkt vom
-        jeweiligen Server. Dabei erhält dieser Server deine IP-Adresse; für diese Verarbeitung ist der
-        jeweilige Anbieter verantwortlich. Ohne solche Verweise findet kein Abruf statt.
+        Nur wenn du in einem Diagramm selbst externe Inhalte einbindest, stellt dein Browser eine
+        Verbindung zu einem fremden Server her. Ohne solche Einbindungen findet kein Abruf statt. Es
+        gibt zwei Fälle:
+      </p>
+      <p>
+        <strong>a) PlantUML-Standardbibliothek</strong> (<code>!include &lt;…&gt;</code>, z.&nbsp;B.
+        für C4-, AWS- oder Azure-Bausteine): Die Bibliothek wird nicht von diesem Server
+        ausgeliefert. Dein Browser lädt das benötigte Paket stattdessen von
+        <code>plantuml.github.io</code>, einem Dienst der GitHub, Inc., 88 Colin P. Kelly Jr.
+        Street, San Francisco, CA 94107, USA. Dabei erhält GitHub technisch bedingt deine IP-Adresse
+        sowie die Angaben aus Abschnitt 2 und kann diese auch in den USA verarbeiten. Der Abruf
+        erfolgt ausschließlich, weil du die Bibliothek in dein Diagramm aufgenommen hast
+        (Art. 6 Abs. 1 lit. f DSGVO: Bereitstellung der von dir gewünschten Funktion). Näheres findest
+        du in der
+        <a href="https://docs.github.com/de/site-policy/privacy-policies/github-general-privacy-statement">Datenschutzerklärung von GitHub</a>.
+      </p>
+      <p>
+        <strong>b) Eigene URLs</strong> (z.&nbsp;B. <code>!include https://…</code> oder Bild-URLs): Dein
+        Browser lädt die Inhalte direkt vom angegebenen Server, der dabei deine IP-Adresse erhält.
+        Für diese Verarbeitung ist der jeweilige Anbieter verantwortlich.
       </p>
 
       <h2>6. Externe Links</h2>
@@ -105,7 +123,10 @@
       <p class="meta">Stand: September 2026</p>
     </main>
     <footer>
-      <a href="/?lang=de">Zum Editor</a>
+      <a href="/?lang=de">Zum Editor</a> ·
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a> ·
+      <a href="ueber.html">Über dieses Projekt</a> ·
+      <a href="https://mseiche.de">mseiche.de</a>
     </footer>
   </body>
 </html>

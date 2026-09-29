@@ -4,7 +4,7 @@ import type { GlobalSelector, StylePropKey } from '../../core/plantuml-styles';
 import type { TemplateId } from '../../core/templates';
 import { table } from '../translations';
 
-/** German UI texts – the reference dictionary (see `Translations`). */
+/** German UI texts, the reference dictionary (see `Translations`). */
 const de = {
   common: {
     cancel: 'Abbrechen',
@@ -20,9 +20,9 @@ const de = {
 
   /** Texts for search engines and link previews (title, meta description, Open Graph). */
   seo: {
-    title: 'PlantUML Editor online – kostenlos, mit Live-Vorschau | PlantUML Power Editor',
+    title: 'PlantUML Editor online: kostenlos, mit Live-Vorschau | PlantUML Power Editor',
     description:
-      'Kostenloser Online-PlantUML-Editor: UML-Diagramme im Browser schreiben, live rendern, per Klick stylen und als PNG oder SVG exportieren. Ohne Anmeldung – alles bleibt lokal.',
+      'Kostenloser Online-PlantUML-Editor: UML-Diagramme im Browser schreiben, live rendern, per Klick stylen und als PNG oder SVG exportieren. Ohne Anmeldung, alles bleibt lokal.',
     heading: 'PlantUML Editor',
     /** Social card in `public/` (1200×630). */
     image: 'og-image-de.jpg',
@@ -82,8 +82,12 @@ const de = {
     editDiagramStyle: 'Diagramm-Style anpassen',
     docs: 'PlantUML-Dokumentation',
     docsUrl: 'https://plantuml.com/de/',
+    about: 'Über dieses Projekt',
+    aboutUrl: 'ueber.html',
     privacy: 'Datenschutz',
     privacyUrl: 'datenschutz.html',
+    terms: 'Nutzungsbedingungen',
+    termsUrl: 'nutzungsbedingungen.html',
     jumpToEditor: 'Zum Editor springen',
     lineShort: (line: number) => `Z. ${line}`,
     adjustStyle: 'Style anpassen',
@@ -117,7 +121,7 @@ const de = {
     aria: 'Diagramm-Vorschau. Klick auf ein Element öffnet das Kontextmenü. Strg + Mausrad zoomt.',
     loading: 'PlantUML-Engine wird geladen …',
     failed: 'Die PlantUML-Engine konnte nicht geladen werden.',
-    noValidRender: 'Noch keine gültige Darstellung – bitte Fehler im Editor beheben.',
+    noValidRender: 'Noch keine gültige Darstellung. Bitte behebe die Fehler im Editor.',
     startTyping: 'Beginne im Editor zu tippen …',
     syntaxError: (line: number | null) => (line ? `Syntaxfehler in Zeile ${line}` : 'Syntaxfehler'),
     lastGood: 'Angezeigt wird der letzte funktionierende Stand.',
@@ -135,7 +139,7 @@ const de = {
 
   errors: {
     timeout: 'Zeitüberschreitung beim Rendern',
-    unknownType: 'Diagrammtyp nicht erkannt – fehlt @startuml / @enduml?',
+    unknownType: 'Diagrammtyp nicht erkannt. Fehlt @startuml / @enduml?',
     syntax: 'Syntaxfehler',
     /** Replacements applied to the (English) messages reported by PlantUML. */
     engineMessages: [
@@ -180,7 +184,7 @@ const de = {
     showInEditor: 'Im Editor zeigen',
     closeAria: 'Style-Panel schließen',
     theme: 'Theme',
-    noTheme: '– Kein Theme –',
+    noTheme: 'Kein Theme',
     customThemes: 'Eigene Themes',
     plantumlThemes: 'PlantUML-Themes',
     saveTheme: 'Als eigenes Theme speichern',
@@ -268,7 +272,7 @@ const de = {
     noticePoints: [
       'Die Daten verlassen dein Gerät nicht und werden nicht synchronisiert.',
       'Beim Löschen der Browserdaten, im privaten Modus oder in einem anderen Browser sind sie nicht verfügbar.',
-      'Der Speicher ist begrenzt (typisch ca. 5 MB) – exportiere wichtige Diagramme zusätzlich als Datei.',
+      'Der Speicher ist begrenzt (typisch ca. 5 MB). Exportiere wichtige Diagramme deshalb zusätzlich als Datei.',
     ],
     dontShowAgain: 'Diesen Hinweis nicht mehr anzeigen',
     saveInBrowser: 'Im Browser speichern',

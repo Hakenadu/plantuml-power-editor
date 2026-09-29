@@ -1,4 +1,4 @@
-// Self-hosted web fonts – nothing is loaded from third-party servers (privacy, no CDN).
+// Self-hosted web fonts: nothing is loaded from third-party servers (privacy, no CDN).
 // The files are bundled from node_modules by the Angular build (hashed, long-term cacheable).
 
 $fontsource: '../node_modules/@fontsource-variable';

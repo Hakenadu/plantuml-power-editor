@@ -53,4 +53,40 @@
     <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/datenschutz.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/privacy.html"/>
   </url>
+  <url>
+    <loc>https://plantuml-editor.com/terms.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/nutzungsbedingungen.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/terms.html"/>
+  </url>
+  <url>
+    <loc>https://plantuml-editor.com/nutzungsbedingungen.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/nutzungsbedingungen.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/terms.html"/>
+  </url>
+  <url>
+    <loc>https://plantuml-editor.com/about.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/about.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/ueber.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/about.html"/>
+  </url>
+  <url>
+    <loc>https://plantuml-editor.com/ueber.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/about.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/ueber.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/about.html"/>
+  </url>
 </urlset>

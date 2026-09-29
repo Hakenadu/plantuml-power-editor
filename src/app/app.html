@@ -302,9 +302,17 @@
     <mat-icon>menu_book</mat-icon>
     {{ tr.app.docs }}
   </a>
+  <a mat-menu-item [href]="tr.app.aboutUrl" target="_blank">
+    <mat-icon>info</mat-icon>
+    {{ tr.app.about }}
+  </a>
   <a mat-menu-item [href]="tr.app.privacyUrl" target="_blank">
     <mat-icon>privacy_tip</mat-icon>
     {{ tr.app.privacy }}
+  </a>
+  <a mat-menu-item [href]="tr.app.termsUrl" target="_blank">
+    <mat-icon>gavel</mat-icon>
+    {{ tr.app.terms }}
   </a>
 </mat-menu>
 

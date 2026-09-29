@@ -241,7 +241,7 @@ export class App {
       const untouched = !this.currentId() && this.source() === this.initialSource();
       document.title = untouched
         ? this.t().seo.title
-        : `${this.dirty() ? '● ' : ''}${n} – PlantUML Power Editor`;
+        : `${this.dirty() ? '● ' : ''}${n} | PlantUML Power Editor`;
     });
 
     inject(DestroyRef).onDestroy(() => {

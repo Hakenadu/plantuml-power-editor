@@ -15,9 +15,9 @@ const en: Translations = {
   keys: { ctrl: 'Ctrl', shift: 'Shift' },
 
   seo: {
-    title: 'PlantUML Editor online – free, with live preview | PlantUML Power Editor',
+    title: 'PlantUML Editor online: free, with live preview | PlantUML Power Editor',
     description:
-      'Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up – everything stays on your device.',
+      'Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up, everything stays on your device.',
     heading: 'PlantUML Editor',
     image: 'og-image.jpg',
     imageAlt:
@@ -76,8 +76,12 @@ const en: Translations = {
     editDiagramStyle: 'Adjust diagram style',
     docs: 'PlantUML documentation',
     docsUrl: 'https://plantuml.com/',
+    about: 'About this project',
+    aboutUrl: 'about.html',
     privacy: 'Privacy',
     privacyUrl: 'privacy.html',
+    terms: 'Terms of service',
+    termsUrl: 'terms.html',
     jumpToEditor: 'Jump to editor',
     lineShort: (line) => `L. ${line}`,
     adjustStyle: 'Adjust style',
@@ -111,7 +115,7 @@ const en: Translations = {
     aria: 'Diagram preview. Clicking an element opens the context menu. Ctrl + mouse wheel zooms.',
     loading: 'Loading PlantUML engine …',
     failed: 'The PlantUML engine could not be loaded.',
-    noValidRender: 'No valid rendering yet – please fix the errors in the editor.',
+    noValidRender: 'No valid rendering yet. Please fix the errors in the editor.',
     startTyping: 'Start typing in the editor …',
     syntaxError: (line) => (line ? `Syntax error in line ${line}` : 'Syntax error'),
     lastGood: 'Showing the last working version.',
@@ -129,7 +133,7 @@ const en: Translations = {
 
   errors: {
     timeout: 'Rendering timed out',
-    unknownType: 'Diagram type not recognized – missing @startuml / @enduml?',
+    unknownType: 'Diagram type not recognized. Missing @startuml / @enduml?',
     syntax: 'Syntax error',
     engineMessages: [],
   },
@@ -150,7 +154,7 @@ const en: Translations = {
     showInEditor: 'Show in editor',
     closeAria: 'Close style panel',
     theme: 'Theme',
-    noTheme: '– No theme –',
+    noTheme: 'No theme',
     customThemes: 'Custom themes',
     plantumlThemes: 'PlantUML themes',
     saveTheme: 'Save as custom theme',
@@ -238,7 +242,7 @@ const en: Translations = {
     noticePoints: [
       'The data never leaves your device and is not synchronized.',
       'It is not available after clearing browser data, in private mode or in another browser.',
-      'Storage is limited (typically about 5 MB) – export important diagrams as files as well.',
+      'Storage is limited (typically about 5 MB), so export important diagrams as files as well.',
     ],
     dontShowAgain: "Don't show this notice again",
     saveInBrowser: 'Save in browser',

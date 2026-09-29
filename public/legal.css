@@ -85,6 +85,16 @@ p {
   color: var(--muted);
 }
 
+ul {
+  margin: 0 0 12px;
+  padding-left: 1.2em;
+  color: var(--muted);
+}
+
+li {
+  margin: 4px 0;
+}
+
 .lead {
   color: var(--fg);
   padding: 16px;
@@ -95,6 +105,11 @@ p {
 code {
   font-family: ui-monospace, Consolas, monospace;
   font-size: 0.9em;
+}
+
+.note {
+  font-size: 0.875rem;
+  font-style: italic;
 }
 
 .meta {

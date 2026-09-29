@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Über dieses Projekt | PlantUML Power Editor</title>
+    <meta
+      name="description"
+      content="Warum es den PlantUML Power Editor gibt: ein privates Projekt eines PlantUML-Fans. PlantUML rendert direkt im Browser, ganz ohne Remote-Server."
+    />
+    <link rel="canonical" href="https://plantuml-editor.com/ueber.html" />
+    <link rel="alternate" hreflang="de" href="https://plantuml-editor.com/ueber.html" />
+    <link rel="alternate" hreflang="en" href="https://plantuml-editor.com/about.html" />
+    <link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/about.html" />
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="legal.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/?lang=de"><img src="favicon.svg" width="28" height="28" alt="" />PlantUML Power Editor</a>
+      <a class="lang" href="about.html" hreflang="en" lang="en">English</a>
+    </header>
+    <main>
+      <h1>Über dieses Projekt</h1>
+      <p class="lead">
+        Ich bin ein riesiger Fan von <a href="https://plantuml.com/de/">PlantUML</a>. Mit den öffentlich
+        verfügbaren Online-Editoren bin ich aber nie richtig warm geworden. Deshalb habe ich mir
+        meinen eigenen gebaut: den PlantUML Power Editor.
+      </p>
+
+      <h2>Warum PlantUML?</h2>
+      <p>
+        Diagramme als Text zu schreiben ist für mich unschlagbar: Sie lassen sich versionieren, in
+        Code-Reviews vergleichen, schnell anpassen und sehen trotzdem ordentlich aus. PlantUML deckt
+        dabei fast alles ab, von Sequenz- und Klassendiagrammen bis zu Mindmaps und Gantt-Charts.
+      </p>
+
+      <h2>Warum ein eigener Editor?</h2>
+      <p>
+        Mir haben bei den verfügbaren Editoren immer Dinge gefehlt: eine sofortige Vorschau, die beim
+        Tippen nicht ständig verschwindet, Fehlermeldungen direkt an der betroffenen Zeile, eine
+        sinnvolle Autovervollständigung und die Möglichkeit, Elemente einfach anzuklicken und zu
+        gestalten. Dazu ein modernes, aufgeräumtes Design, das auch auf dem Smartphone funktioniert.
+        Also habe ich dieses Projekt gestartet, zunächst für mich selbst. Wer es nützlich findet, darf
+        es gern mitbenutzen.
+      </p>
+
+      <h2>Kein offizielles PlantUML-Projekt</h2>
+      <p>
+        Ich gehöre nicht zum PlantUML-Team und stehe in keiner Verbindung zu den Entwicklern. Ich bin
+        einfach ein übereifriger Nutzer. PlantUML selbst wird von Arnaud Roques und vielen
+        Mitwirkenden als Open-Source-Projekt entwickelt. Alle Informationen zur Sprache findest du auf
+        der <a href="https://plantuml.com/de/">offiziellen PlantUML-Website</a>.
+      </p>
+
+      <h2>Gerendert direkt in deinem Browser</h2>
+      <p>
+        Der Editor verwendet die offizielle JavaScript-Implementierung von PlantUML: Der Java-Code von
+        PlantUML wird dafür mit TeaVM nach JavaScript übersetzt, das Layout übernimmt Graphviz als
+        WebAssembly. Deine Diagramme werden deshalb vollständig lokal in deinem Browser gerendert.
+        Es gibt keinen Remote-Server, der deinen Quelltext empfängt oder Bilder erzeugt, und deine
+        Diagramme verlassen dein Gerät nicht. Details stehen in der
+        <a href="datenschutz.html">Datenschutzerklärung</a>.
+      </p>
+
+      <h2>Verwendete Technologien</h2>
+      <ul>
+        <li>
+          <a href="https://www.npmjs.com/package/@plantuml/core">@plantuml/core</a>: PlantUML als
+          JavaScript (mit TeaVM kompiliert), inklusive Graphviz als WebAssembly
+        </li>
+        <li><a href="https://angular.dev/">Angular</a> mit Signals und Angular Material (Material 3)</li>
+        <li><a href="https://codemirror.net/">CodeMirror 6</a> für Editor, Syntax-Highlighting und Autovervollständigung</li>
+        <li>
+          Schriften <a href="https://rsms.me/inter/">Inter</a> und
+          <a href="https://www.jetbrains.com/lp/mono/">JetBrains Mono</a> sowie
+          <a href="https://fonts.google.com/icons">Material Symbols</a>, alle von diesem Server ausgeliefert
+        </li>
+        <li>Local Storage des Browsers für gespeicherte Diagramme und Einstellungen</li>
+        <li>Auslieferung als statische Website über nginx in einem Docker-Container</li>
+      </ul>
+
+      <h2>Open Source</h2>
+      <p>
+        Der Quelltext liegt auf
+        <a href="https://github.com/Hakenadu/plantuml-power-editor">GitHub</a>. Fehler und Ideen
+        kannst du dort gern als Issue melden.
+      </p>
+
+      <p class="meta">
+        Manuel Seiche, <a href="https://mseiche.de">mseiche.de</a>
+      </p>
+    </main>
+    <footer>
+      <a href="/?lang=de">Zum Editor</a> · <a href="datenschutz.html">Datenschutz</a> ·
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+    </footer>
+  </body>
+</html>

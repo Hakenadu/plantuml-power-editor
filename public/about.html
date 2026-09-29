@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>About this project | PlantUML Power Editor</title>
+    <meta
+      name="description"
+      content="Why PlantUML Power Editor exists: a private project by a PlantUML fan. PlantUML renders right in your browser, without any remote server."
+    />
+    <link rel="canonical" href="https://plantuml-editor.com/about.html" />
+    <link rel="alternate" hreflang="en" href="https://plantuml-editor.com/about.html" />
+    <link rel="alternate" hreflang="de" href="https://plantuml-editor.com/ueber.html" />
+    <link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/about.html" />
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="legal.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/?lang=en"><img src="favicon.svg" width="28" height="28" alt="" />PlantUML Power Editor</a>
+      <a class="lang" href="ueber.html" hreflang="de" lang="de">Deutsch</a>
+    </header>
+    <main>
+      <h1>About this project</h1>
+      <p class="lead">
+        I am a huge fan of <a href="https://plantuml.com/">PlantUML</a>. I never really warmed to the
+        publicly available online editors, though. So I built my own: PlantUML Power Editor.
+      </p>
+
+      <h2>Why PlantUML?</h2>
+      <p>
+        Writing diagrams as text is hard to beat: they can be versioned, compared in code reviews and
+        changed quickly, and they still look good. PlantUML covers almost everything, from sequence
+        and class diagrams to mind maps and Gantt charts.
+      </p>
+
+      <h2>Why another editor?</h2>
+      <p>
+        The available editors always lacked something for me: an instant preview that does not keep
+        disappearing while typing, error messages right at the affected line, useful autocompletion
+        and the ability to simply click elements and style them. Plus a modern, clean design that
+        also works on a phone. So I started this project, primarily for myself. If you find it
+        useful, you are welcome to use it too.
+      </p>
+
+      <h2>Not an official PlantUML project</h2>
+      <p>
+        I am not part of the PlantUML team and I am not affiliated with its developers. I am simply an
+        overly enthusiastic user. PlantUML itself is developed as an open source project by Arnaud
+        Roques and many contributors. Everything about the language can be found on the
+        <a href="https://plantuml.com/">official PlantUML website</a>.
+      </p>
+
+      <h2>Rendered right in your browser</h2>
+      <p>
+        The editor uses the official JavaScript implementation of PlantUML: PlantUML's Java code is
+        compiled to JavaScript with TeaVM, and Graphviz handles the layout as WebAssembly. Your
+        diagrams are therefore rendered entirely locally in your browser. There is no remote server
+        that receives your source code or generates images, and your diagrams never leave your
+        device. Details are in the <a href="privacy.html">privacy policy</a>.
+      </p>
+
+      <h2>Technologies used</h2>
+      <ul>
+        <li>
+          <a href="https://www.npmjs.com/package/@plantuml/core">@plantuml/core</a>: PlantUML as
+          JavaScript (compiled with TeaVM), including Graphviz as WebAssembly
+        </li>
+        <li><a href="https://angular.dev/">Angular</a> with signals and Angular Material (Material 3)</li>
+        <li><a href="https://codemirror.net/">CodeMirror 6</a> for the editor, syntax highlighting and autocompletion</li>
+        <li>
+          The fonts <a href="https://rsms.me/inter/">Inter</a> and
+          <a href="https://www.jetbrains.com/lp/mono/">JetBrains Mono</a> plus
+          <a href="https://fonts.google.com/icons">Material Symbols</a>, all served from this server
+        </li>
+        <li>The browser's local storage for saved diagrams and settings</li>
+        <li>Delivered as a static website by nginx in a Docker container</li>
+      </ul>
+
+      <h2>Open source</h2>
+      <p>
+        The source code is on
+        <a href="https://github.com/Hakenadu/plantuml-power-editor">GitHub</a>. Feel free to report
+        bugs and ideas there as an issue.
+      </p>
+
+      <p class="meta">
+        Manuel Seiche, <a href="https://mseiche.de">mseiche.de</a>
+      </p>
+    </main>
+    <footer>
+      <a href="/?lang=en">Open the editor</a> · <a href="privacy.html">Privacy</a> ·
+      <a href="terms.html">Terms of service</a>
+    </footer>
+  </body>
+</html>
