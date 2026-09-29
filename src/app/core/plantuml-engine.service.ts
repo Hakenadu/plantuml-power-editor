@@ -150,7 +150,7 @@ export class PlantUmlEngineService {
 
   private async doLoad(): Promise<RenderToString> {
     const w = window as unknown as Record<string, unknown>;
-    // Lets `!include <C4/C4_Container>` & co. lazily fetch the standard library.
+    // Lets `!include <library/file>` lazily fetch the standard library (see privacy policy, section 5).
     w['PLANTUML_STDLIB_BASE'] ??= 'https://plantuml.github.io/plantuml/js-plantuml/';
     await Promise.all([
       loadScript('viz-global.js'),

@@ -350,6 +350,7 @@ const en: Translations = {
       outLeft: 'outgoing (left)',
     },
     placeholder: {
+      includePath: 'library/file',
       title: 'Title',
       header: 'Header',
       footer: 'Footer',

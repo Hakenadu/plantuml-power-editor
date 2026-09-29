@@ -381,6 +381,7 @@ const de = {
     },
     /** Snippet placeholders (the text pre-selected after inserting a snippet). */
     placeholder: {
+      includePath: 'Bibliothek/Datei',
       title: 'Titel',
       header: 'Kopfzeile',
       footer: 'Fußzeile',

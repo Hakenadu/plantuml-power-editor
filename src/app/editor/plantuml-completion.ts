@@ -65,7 +65,7 @@ function buildCatalog(texts: CompletionTexts) {
     kw('show'),
     snip('scale ${1.5}', { label: 'scale', type: 'keyword' }),
     snip('!theme ${cerulean}', { label: '!theme', type: 'keyword', detail: d['theme'] }),
-    snip('!include <${C4/C4_Container}>', {
+    snip(`!include <${ph('includePath')}>`, {
       label: '!include',
       type: 'keyword',
       detail: d['stdlib'],
