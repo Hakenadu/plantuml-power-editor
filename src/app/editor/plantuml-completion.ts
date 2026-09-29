@@ -93,6 +93,7 @@ const COMMON_LINE_START: Completion[] = [
     detail: 'Standardbibliothek',
   }),
   snip('!define ${NAME} ${value}', { label: '!define', type: 'keyword' }),
+  { label: '!option handwritten true', type: 'keyword', detail: 'Handgezeichnet' },
   snip('!procedure ${name}($${arg})\n\t${}\n!endprocedure', {
     label: '!procedure',
     type: 'keyword',
@@ -249,7 +250,6 @@ const DIRECTIVES: Completion[] = [
 ].map((l) => ({ label: l, type: 'keyword' }));
 
 const SKINPARAMS = [
-  'handwritten true',
   'monochrome true',
   'shadowing false',
   'roundCorner 15',

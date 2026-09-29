@@ -102,7 +102,8 @@ export function parseStyleModel(source: string): StyleModel {
     let m: RegExpExecArray | null;
     if ((m = /^!theme\s+(\S+)/.exec(line))) {
       model.theme = m[1];
-    } else if (/^skinparam\s+handwritten\s+true/i.test(line)) {
+    } else if (/^(!option|skinparam)\s+handwritten\s+true/i.test(line)) {
+      // `skinparam handwritten` is deprecated (renders a warning banner); it is migrated on the next save.
       model.handwritten = true;
     } else if ((m = /^([.\w-]+)\s*\{$/.exec(line))) {
       selector = m[1];
@@ -131,7 +132,7 @@ function serializeProps(selector: string, props: StyleProps | undefined): string
 export function serializeStyleModel(model: StyleModel): string[] {
   const body: string[] = [];
   if (model.theme) body.push(`!theme ${model.theme}`);
-  if (model.handwritten) body.push('skinparam handwritten true');
+  if (model.handwritten) body.push('!option handwritten true');
   const style: string[] = [];
   for (const sel of GLOBAL_SELECTORS) style.push(...serializeProps(sel, model.global[sel]));
   const elementIds = Object.keys(model.elements).sort();
