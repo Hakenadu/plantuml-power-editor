@@ -9,8 +9,9 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser 
 - **Editor mit Syntax-Highlighting** (CodeMirror 6, eigene PlantUML-Sprachdefinition)
 - **Live-Rendering**: Ist die Syntax gerade kaputt, bleibt der letzte funktionierende Stand sichtbar
   (ausgegraut) und ein Fehlerbanner zeigt den Fehler an.
-- **Fehler direkt in der Zeile**: Fehlerzeile wird markiert, die Meldung erscheint inline unter der Zeile
-  und als Lint-Diagnose.
+- **Fehler direkt in der Zeile**: Die Fehlerzeile erhält eine dezente Zeilenannotation am Zeilenende;
+  erst ein Klick darauf klappt die ausführliche Meldung im Editor auf. Fehler in der gerade bearbeiteten
+  Zeile erscheinen erst nach einer kurzen Tipp-Pause, behobene Fehler verschwinden sofort.
 - **Kontextbasierte Autovervollständigung**: erkennt den Diagrammtyp und den Kontext der Cursorposition,
   z. B. werden rechts von einem Pfeil in Sequenzdiagrammen nur Teilnehmer vorgeschlagen, nach einem
   Teilnehmer passende Pfeiltypen, nach `note left of` Teilnehmer, nach `#` Farben, in `<style>` Properties usw.

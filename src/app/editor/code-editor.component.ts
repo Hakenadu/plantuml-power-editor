@@ -28,7 +28,6 @@ import {
   undo,
 } from '@codemirror/commands';
 import { bracketMatching, indentOnInput, indentUnit } from '@codemirror/language';
-import { Diagnostic, lintGutter, lintKeymap, setDiagnostics } from '@codemirror/lint';
 import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
 import {
   Compartment,
@@ -59,28 +58,62 @@ import { plantumlCompletions } from './plantuml-completion';
 import { plantuml } from './plantuml-language';
 
 // ---------------------------------------------------------------------------
-// Error line + inline error widget
+// Error line annotation (compact pill at line end) + expandable detail box
 // ---------------------------------------------------------------------------
 
 const wrapCompartment = new Compartment();
 const setErrorEffect = StateEffect.define<DiagramError | null>();
+const setErrorExpandedEffect = StateEffect.define<boolean>();
 
-class ErrorWidget extends WidgetType {
-  constructor(readonly message: string) {
+interface ErrorState {
+  error: DiagramError | null;
+  /** Document position inside the error line (mapped through edits). */
+  pos: number;
+  expanded: boolean;
+}
+
+function toggleExpanded(view: EditorView, expanded: boolean): void {
+  view.dispatch({ effects: setErrorExpandedEffect.of(expanded) });
+}
+
+/** Short label for the annotation, e.g. "Syntaxfehler?" from "Syntaxfehler? (Vermuteter …)". */
+function shortMessage(message: string): string {
+  const short = message.replace(/\s*\(.*\)\s*$/, '').trim();
+  return short || message;
+}
+
+class ErrorAnnotationWidget extends WidgetType {
+  constructor(
+    readonly message: string,
+    readonly expanded: boolean,
+  ) {
     super();
   }
-  override eq(other: ErrorWidget): boolean {
-    return other.message === this.message;
+  override eq(other: ErrorAnnotationWidget): boolean {
+    return other.message === this.message && other.expanded === this.expanded;
   }
-  toDOM(): HTMLElement {
-    const el = document.createElement('div');
-    el.className = 'cm-pe-error-widget';
+  toDOM(view: EditorView): HTMLElement {
+    const el = document.createElement('span');
+    el.className = 'cm-pe-error-annotation' + (this.expanded ? ' expanded' : '');
+    el.setAttribute('role', 'button');
+    el.setAttribute('aria-expanded', String(this.expanded));
+    el.title = this.expanded ? 'Fehlerdetails ausblenden' : 'Fehlerdetails anzeigen';
     const icon = document.createElement('span');
-    icon.className = 'material-symbols-rounded';
+    icon.className = 'material-symbols-rounded icon';
     icon.textContent = 'error';
     const text = document.createElement('span');
-    text.textContent = this.message;
-    el.append(icon, text);
+    text.className = 'text';
+    text.textContent = shortMessage(this.message);
+    const chevron = document.createElement('span');
+    chevron.className = 'material-symbols-rounded chevron';
+    chevron.textContent = 'expand_more';
+    el.append(icon, text, chevron);
+    // mousedown instead of click: keeps the editor selection where it is.
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleExpanded(view, !this.expanded);
+    });
     return el;
   }
   override ignoreEvent(): boolean {
@@ -88,30 +121,77 @@ class ErrorWidget extends WidgetType {
   }
 }
 
-const errorField = StateField.define<DecorationSet>({
-  create: () => Decoration.none,
-  update(deco, tr) {
-    deco = deco.map(tr.changes);
+class ErrorDetailWidget extends WidgetType {
+  constructor(readonly message: string) {
+    super();
+  }
+  override eq(other: ErrorDetailWidget): boolean {
+    return other.message === this.message;
+  }
+  toDOM(view: EditorView): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'cm-pe-error-widget';
+    el.title = 'Klicken zum Ausblenden';
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-rounded';
+    icon.textContent = 'error';
+    const text = document.createElement('span');
+    text.textContent = this.message;
+    el.append(icon, text);
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      toggleExpanded(view, false);
+    });
+    return el;
+  }
+  override ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+const errorField = StateField.define<ErrorState>({
+  create: () => ({ error: null, pos: 0, expanded: false }),
+  update(value, tr) {
+    let next = tr.docChanged ? { ...value, pos: tr.changes.mapPos(value.pos) } : value;
     for (const e of tr.effects) {
-      if (!e.is(setErrorEffect)) continue;
-      const err = e.value;
-      if (!err || err.line == null) return Decoration.none;
-      const lineNo = Math.min(Math.max(err.line, 1), tr.state.doc.lines);
-      const line = tr.state.doc.line(lineNo);
+      if (e.is(setErrorEffect)) {
+        const err = e.value;
+        if (!err || err.line == null) {
+          next = { error: null, pos: 0, expanded: false };
+        } else {
+          const line = tr.state.doc.line(Math.min(Math.max(err.line, 1), tr.state.doc.lines));
+          // Keep the detail box open only if the error stays on the same line.
+          const sameLine = !!next.error && next.error.line === err.line;
+          next = { error: err, pos: line.from, expanded: sameLine && next.expanded };
+        }
+      } else if (e.is(setErrorExpandedEffect) && next.error) {
+        next = { ...next, expanded: e.value };
+      }
+    }
+    return next;
+  },
+  provide: (f) =>
+    EditorView.decorations.compute([f], (state) => {
+      const { error, pos, expanded } = state.field(f);
+      if (!error) return Decoration.none;
+      const line = state.doc.lineAt(Math.min(pos, state.doc.length));
       const builder = new RangeSetBuilder<Decoration>();
       builder.add(line.from, line.from, Decoration.line({ class: 'cm-pe-error-line' }));
       builder.add(
         line.to,
         line.to,
-        Decoration.widget({ widget: new ErrorWidget(err.message), block: true, side: 1 }),
+        Decoration.widget({ widget: new ErrorAnnotationWidget(error.message, expanded), side: 1 }),
       );
+      if (expanded) {
+        builder.add(
+          line.to,
+          line.to,
+          Decoration.widget({ widget: new ErrorDetailWidget(error.message), block: true, side: 2 }),
+        );
+      }
       return builder.finish();
-    }
-    return deco;
-  },
-  provide: (f) => EditorView.decorations.from(f),
+    }),
 });
-
 // ---------------------------------------------------------------------------
 // "Jump to line" flash
 // ---------------------------------------------------------------------------
@@ -180,9 +260,39 @@ const editorTheme = EditorView.theme({
     backgroundColor: 'color-mix(in srgb, var(--mat-sys-tertiary) 16%, transparent)',
   },
   '.cm-pe-error-line': {
-    backgroundColor: 'color-mix(in srgb, var(--mat-sys-error) 11%, transparent)',
-    boxShadow: 'inset 3px 0 0 var(--mat-sys-error)',
+    backgroundImage:
+      'linear-gradient(90deg, color-mix(in srgb, var(--mat-sys-error) 9%, transparent), transparent 70%)',
+    boxShadow: 'inset 2px 0 0 color-mix(in srgb, var(--mat-sys-error) 80%, transparent)',
   },
+  '.cm-pe-error-annotation': {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    marginLeft: '16px',
+    padding: '0 4px 0 6px',
+    height: '1.45em',
+    maxWidth: '26ch',
+    verticalAlign: 'middle',
+    borderRadius: '999px',
+    fontFamily: 'Inter, var(--mat-sys-body-medium-font, sans-serif)',
+    fontSize: '0.78em',
+    lineHeight: '1',
+    color: 'var(--mat-sys-error)',
+    backgroundColor: 'color-mix(in srgb, var(--mat-sys-error) 12%, transparent)',
+    border: '1px solid color-mix(in srgb, var(--mat-sys-error) 28%, transparent)',
+    cursor: 'pointer',
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
+    animation: 'pe-fade-in .25s ease-out',
+    transition: 'background-color .15s ease',
+  },
+  '.cm-pe-error-annotation:hover, .cm-pe-error-annotation.expanded': {
+    backgroundColor: 'color-mix(in srgb, var(--mat-sys-error) 22%, transparent)',
+  },
+  '.cm-pe-error-annotation .text': { overflow: 'hidden', textOverflow: 'ellipsis' },
+  '.cm-pe-error-annotation .icon': { fontSize: '14px' },
+  '.cm-pe-error-annotation .chevron': { fontSize: '16px', transition: 'transform .15s ease' },
+  '.cm-pe-error-annotation.expanded .chevron': { transform: 'rotate(180deg)' },
   '.cm-pe-error-widget': {
     display: 'flex',
     alignItems: 'center',
@@ -196,6 +306,7 @@ const editorTheme = EditorView.theme({
     color: 'var(--mat-sys-on-error-container)',
     backgroundColor: 'var(--mat-sys-error-container)',
     animation: 'pe-pop .18s ease-out',
+    cursor: 'pointer',
   },
   '.cm-pe-error-widget .material-symbols-rounded': { fontSize: '18px' },
   '.cm-pe-flash-line': { animation: 'pe-flash 1.8s ease-out' },
@@ -240,7 +351,6 @@ const editorTheme = EditorView.theme({
     border: '1px solid var(--mat-sys-outline-variant)',
   },
   '.cm-diagnostic-error': { borderLeftColor: 'var(--mat-sys-error)' },
-  '.cm-lint-marker-error': { content: 'none' },
 });
 
 @Component({
@@ -372,7 +482,6 @@ export class CodeEditorComponent {
       crosshairCursor(),
       highlightActiveLine(),
       highlightSelectionMatches(),
-      lintGutter(),
       plantuml(),
       editorTheme,
       errorField,
@@ -384,7 +493,6 @@ export class CodeEditorComponent {
         ...searchKeymap,
         ...historyKeymap,
         ...completionKeymap,
-        ...lintKeymap,
         indentWithTab,
       ]),
       EditorView.contentAttributes.of({
@@ -413,18 +521,12 @@ export class CodeEditorComponent {
   }
 
   private applyError(view: EditorView, err: DiagramError | null): void {
-    const diagnostics: Diagnostic[] = [];
-    if (err && err.line != null) {
-      const line = view.state.doc.line(Math.min(Math.max(err.line, 1), view.state.doc.lines));
-      diagnostics.push({
-        from: line.from + (line.text.length - line.text.trimStart().length),
-        to: line.to,
-        severity: 'error',
-        message: err.message,
-        source: 'PlantUML',
-      });
-    }
-    view.dispatch(setDiagnostics(view.state, diagnostics), { effects: setErrorEffect.of(err) });
+    view.dispatch({ effects: setErrorEffect.of(err) });
+  }
+
+  /** Opens (or closes) the detail box of the current error annotation. */
+  setErrorExpanded(expanded: boolean): void {
+    if (this.view) toggleExpanded(this.view, expanded);
   }
 }
 

@@ -160,3 +160,9 @@ mat-icon {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+@keyframes pe-fade-in {
+  from {
+    opacity: 0;
+  }
+}

@@ -314,7 +314,10 @@ export class App {
   }
 
   protected jumpToError(): void {
-    this.jumpToLine(this.shownError()?.line ?? this.error()?.line ?? undefined);
+    const line = this.shownError()?.line ?? this.error()?.line ?? undefined;
+    this.jumpToLine(line);
+    // Coming from the preview banner: open the detail box right away.
+    if (line) setTimeout(() => this.editor()?.setErrorExpanded(true), 32);
   }
 
   protected canStyle(t: DiagramTarget | null): boolean {
