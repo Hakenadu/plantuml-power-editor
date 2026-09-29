@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { toHexColor } from '../core/plantuml-colors';
+import { I18nService } from '../i18n/i18n.service';
 
 const QUICK = [
   '#FFFFFF',
@@ -35,8 +36,8 @@ const QUICK = [
           mat-icon-button
           class="reset"
           (click)="valueChange.emit(undefined)"
-          matTooltip="Zurücksetzen"
-          aria-label="Zurücksetzen"
+          [matTooltip]="t().common.reset"
+          [attr.aria-label]="t().common.reset"
         >
           <mat-icon>restart_alt</mat-icon>
         </button>
@@ -47,7 +48,7 @@ const QUICK = [
         class="swatch"
         [class.empty]="!hex()"
         [style.--c]="hex() ?? 'transparent'"
-        [matTooltip]="'Farbe wählen'"
+        [matTooltip]="t().colorField.pick"
       >
         <input
           type="color"
@@ -59,11 +60,11 @@ const QUICK = [
       <input
         class="text"
         [value]="value() ?? ''"
-        placeholder="Standard"
+        [placeholder]="t().common.standard"
         spellcheck="false"
         (change)="onText($event)"
         (keydown.enter)="onText($event)"
-        [attr.aria-label]="label() + ' (Hex oder Farbname)'"
+        [attr.aria-label]="t().colorField.textAria(label())"
       />
     </div>
     <div class="quick">
@@ -180,6 +181,7 @@ export class ColorFieldComponent {
   readonly value = input<string | undefined>(undefined);
   readonly valueChange = output<string | undefined>();
 
+  protected readonly t = inject(I18nService).t;
   readonly quick = QUICK;
   readonly hex = computed(() => toHexColor(this.value()));
 

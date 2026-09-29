@@ -9,7 +9,10 @@ type RenderToString = (
 export interface DiagramError {
   /** 1-based line number in the editor, or null if PlantUML did not report one. */
   line: number | null;
+  /** Raw message as reported by PlantUML (English); empty when only `code` applies. */
   message: string;
+  /** Known error kinds that the UI localizes itself. */
+  code?: 'timeout' | 'unknown-type';
 }
 
 export type RenderResult =
@@ -108,7 +111,7 @@ export class PlantUmlEngineService {
         () =>
           finish({
             ok: false,
-            error: { line: null, message: 'Zeitüberschreitung beim Rendern' },
+            error: { line: null, message: '', code: 'timeout' },
             errorSvg: null,
             durationMs: performance.now() - started,
           }),
@@ -203,13 +206,10 @@ export function extractError(svg: string): DiagramError | null {
     text: decode(m[2]).trim(),
   }));
   const red = texts.filter((t) => /fill="#FF0000"/i.test(t.attrs) && t.text);
-  let message = red.map((t) => t.text).join(' ');
-  if (!message && unsupported) {
-    message = 'Diagrammtyp nicht erkannt – fehlt @startuml / @enduml?';
-  }
-  if (!message) message = 'Syntaxfehler';
-  message = message
-    .replace(/^Syntax Error\?/, 'Syntaxfehler?')
-    .replace('Assumed diagram type:', 'Vermuteter Diagrammtyp:');
-  return { line: lineMatch ? Number(lineMatch[1]) : unsupported ? 1 : null, message };
+  const message = red.map((t) => t.text).join(' ');
+  return {
+    line: lineMatch ? Number(lineMatch[1]) : unsupported ? 1 : null,
+    message,
+    ...(unsupported ? { code: 'unknown-type' as const } : {}),
+  };
 }

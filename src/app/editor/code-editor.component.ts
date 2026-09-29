@@ -34,6 +34,7 @@ import {
   EditorSelection,
   EditorState,
   Extension,
+  Facet,
   RangeSetBuilder,
   StateEffect,
   StateField,
@@ -54,6 +55,7 @@ import {
   rectangularSelection,
 } from '@codemirror/view';
 import { DiagramError } from '../core/plantuml-engine.service';
+import { I18nService } from '../i18n/i18n.service';
 import { plantumlCompletions } from './plantuml-completion';
 import { plantuml } from './plantuml-language';
 
@@ -62,6 +64,18 @@ import { plantuml } from './plantuml-language';
 // ---------------------------------------------------------------------------
 
 const wrapCompartment = new Compartment();
+const i18nCompartment = new Compartment();
+
+interface ErrorLabels {
+  show: string;
+  hide: string;
+  dismiss: string;
+}
+
+/** Localized tooltips of the error widgets (provided through `i18nCompartment`). */
+const errorLabels = Facet.define<ErrorLabels, ErrorLabels>({
+  combine: (values) => values[0] ?? { show: '', hide: '', dismiss: '' },
+});
 const setErrorEffect = StateEffect.define<DiagramError | null>();
 const setErrorExpandedEffect = StateEffect.define<boolean>();
 
@@ -86,18 +100,23 @@ class ErrorAnnotationWidget extends WidgetType {
   constructor(
     readonly message: string,
     readonly expanded: boolean,
+    readonly labels: ErrorLabels,
   ) {
     super();
   }
   override eq(other: ErrorAnnotationWidget): boolean {
-    return other.message === this.message && other.expanded === this.expanded;
+    return (
+      other.message === this.message &&
+      other.expanded === this.expanded &&
+      other.labels === this.labels
+    );
   }
   toDOM(view: EditorView): HTMLElement {
     const el = document.createElement('span');
     el.className = 'cm-pe-error-annotation' + (this.expanded ? ' expanded' : '');
     el.setAttribute('role', 'button');
     el.setAttribute('aria-expanded', String(this.expanded));
-    el.title = this.expanded ? 'Fehlerdetails ausblenden' : 'Fehlerdetails anzeigen';
+    el.title = this.expanded ? this.labels.hide : this.labels.show;
     const icon = document.createElement('span');
     icon.className = 'material-symbols-rounded icon';
     icon.textContent = 'error';
@@ -122,16 +141,19 @@ class ErrorAnnotationWidget extends WidgetType {
 }
 
 class ErrorDetailWidget extends WidgetType {
-  constructor(readonly message: string) {
+  constructor(
+    readonly message: string,
+    readonly labels: ErrorLabels,
+  ) {
     super();
   }
   override eq(other: ErrorDetailWidget): boolean {
-    return other.message === this.message;
+    return other.message === this.message && other.labels === this.labels;
   }
   toDOM(view: EditorView): HTMLElement {
     const el = document.createElement('div');
     el.className = 'cm-pe-error-widget';
-    el.title = 'Klicken zum Ausblenden';
+    el.title = this.labels.dismiss;
     const icon = document.createElement('span');
     icon.className = 'material-symbols-rounded';
     icon.textContent = 'error';
@@ -171,8 +193,9 @@ const errorField = StateField.define<ErrorState>({
     return next;
   },
   provide: (f) =>
-    EditorView.decorations.compute([f], (state) => {
+    EditorView.decorations.compute([f, errorLabels], (state) => {
       const { error, pos, expanded } = state.field(f);
+      const labels = state.facet(errorLabels);
       if (!error) return Decoration.none;
       const line = state.doc.lineAt(Math.min(pos, state.doc.length));
       const builder = new RangeSetBuilder<Decoration>();
@@ -180,13 +203,20 @@ const errorField = StateField.define<ErrorState>({
       builder.add(
         line.to,
         line.to,
-        Decoration.widget({ widget: new ErrorAnnotationWidget(error.message, expanded), side: 1 }),
+        Decoration.widget({
+          widget: new ErrorAnnotationWidget(error.message, expanded, labels),
+          side: 1,
+        }),
       );
       if (expanded) {
         builder.add(
           line.to,
           line.to,
-          Decoration.widget({ widget: new ErrorDetailWidget(error.message), block: true, side: 2 }),
+          Decoration.widget({
+            widget: new ErrorDetailWidget(error.message, labels),
+            block: true,
+            side: 2,
+          }),
         );
       }
       return builder.finish();
@@ -379,6 +409,7 @@ export class CodeEditorComponent {
   readonly cursorLine = output<number>();
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly i18n = inject(I18nService);
   private view?: EditorView;
   private flashTimer?: ReturnType<typeof setTimeout>;
   private lastEmitted: string | null = null;
@@ -409,6 +440,12 @@ export class CodeEditorComponent {
       this.view?.dispatch({
         effects: wrapCompartment.reconfigure(wrap ? EditorView.lineWrapping : []),
       });
+    });
+
+    // Language switch -> tooltips, aria label and CodeMirror's own phrases.
+    effect(() => {
+      const ext = this.i18nExtension();
+      this.view?.dispatch({ effects: i18nCompartment.reconfigure(ext) });
     });
 
     inject(DestroyRef).onDestroy(() => {
@@ -495,8 +532,8 @@ export class CodeEditorComponent {
         ...completionKeymap,
         indentWithTab,
       ]),
+      i18nCompartment.of(this.i18nExtension()),
       EditorView.contentAttributes.of({
-        'aria-label': 'PlantUML Quelltext',
         autocapitalize: 'off',
         autocorrect: 'off',
         spellcheck: 'false',
@@ -518,6 +555,15 @@ export class CodeEditorComponent {
       state: EditorState.create({ doc: initial, extensions }),
     });
     this.applyError(this.view, this.error());
+  }
+
+  private i18nExtension(): Extension {
+    const t = this.i18n.t().editor;
+    return [
+      errorLabels.of({ show: t.showDetails, hide: t.hideDetails, dismiss: t.clickToHide }),
+      EditorView.contentAttributes.of({ 'aria-label': t.aria }),
+      EditorState.phrases.of(t.phrases),
+    ];
   }
 
   private applyError(view: EditorView, err: DiagramError | null): void {

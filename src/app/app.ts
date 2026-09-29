@@ -37,10 +37,10 @@ import {
 import { RenameDialogComponent } from './dialogs/rename-dialog.component';
 
 import { DiagramError, PlantUmlEngineService } from './core/plantuml-engine.service';
-import { DiagramStoreService, StoredDiagram } from './core/diagram-store.service';
+import { DiagramStoreService, StorageFullError, StoredDiagram } from './core/diagram-store.service';
 import { ExportService } from './core/export.service';
-import { DIAGRAM_TYPE_LABELS, detectDiagramType } from './core/plantuml-analysis';
-import { DiagramTarget, TARGET_KIND_LABELS, resolveTarget } from './core/diagram-targets';
+import { detectDiagramType } from './core/plantuml-analysis';
+import { DiagramTarget, TargetKind, resolveTarget } from './core/diagram-targets';
 import {
   StyleModel,
   applyLinkStyle,
@@ -53,7 +53,9 @@ import {
   removeElementStereotype,
   stereotypeFor,
 } from './core/plantuml-styles';
-import { DiagramTemplate, TEMPLATES } from './core/templates';
+import { DiagramTemplate, TEMPLATE_DEFS } from './core/templates';
+import { I18nService } from './i18n/i18n.service';
+import { LanguagePreference } from './i18n/languages';
 
 type StyleTarget =
   | { mode: 'global' }
@@ -61,7 +63,7 @@ type StyleTarget =
       mode: 'element';
       elementId: string;
       label: string;
-      kindLabel: string;
+      kind: TargetKind;
       line?: number;
       activity: boolean;
     }
@@ -110,17 +112,21 @@ export class App {
   private readonly exporter = inject(ExportService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  protected readonly i18n = inject(I18nService);
+  /** Current UI dictionary (signal). */
+  protected readonly t = this.i18n.t;
 
   private readonly editor = viewChild(CodeEditorComponent);
   private readonly preview = viewChild(DiagramPreviewComponent);
   private readonly ctxTrigger = viewChild<MatMenuTrigger>('ctxTrigger');
 
-  protected readonly templates = TEMPLATES;
-  protected readonly kindLabels = TARGET_KIND_LABELS;
+  protected readonly templates = computed<DiagramTemplate[]>(() =>
+    TEMPLATE_DEFS.map((d) => ({ ...d, ...this.t().templates[d.id] })),
+  );
 
   // ---- Document state ------------------------------------------------------
   protected readonly source = signal('');
-  protected readonly name = signal('Unbenanntes Diagramm');
+  protected readonly name = signal(this.t().app.untitled);
   protected readonly currentId = signal<string | null>(null);
   private readonly savedSource = signal<string | null>(null);
   protected readonly dirty = computed(() => this.source() !== this.savedSource());
@@ -135,11 +141,16 @@ export class App {
   protected readonly shownError = signal<DiagramError | null>(null);
   /** An error exists but is currently held back while the user types. */
   protected readonly errorPending = computed(() => !!this.error() && !this.shownError());
+  /** `shownError` with a message in the UI language (for editor and preview). */
+  protected readonly displayError = computed<DiagramError | null>(() => {
+    const err = this.shownError();
+    return err ? { ...err, message: this.i18n.errorMessage(err) } : null;
+  });
   protected readonly cursorLine = signal(1);
   protected readonly rendering = signal(false);
   protected readonly lastDuration = signal<number | null>(null);
   protected readonly diagramType = computed(() => detectDiagramType(this.source()));
-  protected readonly diagramTypeLabel = computed(() => DIAGRAM_TYPE_LABELS[this.diagramType()]);
+  protected readonly diagramTypeLabel = computed(() => this.t().diagramTypes[this.diagramType()]);
   private readonly styleModel = computed<StyleModel>(() => parseStyleModel(this.source()));
 
   // ---- Layout --------------------------------------------------------------
@@ -183,7 +194,7 @@ export class App {
     this.applyTheme();
     this.engine.load().then(
       () => setCompletionThemes(this.engine.themes().map((t) => t.id)),
-      () => this.snackBar.open('PlantUML-Engine konnte nicht geladen werden.', 'OK'),
+      () => this.snackBar.open(this.t().snack.engineFailed, this.t().common.ok),
     );
 
     // Live rendering (debounced, latest wins).
@@ -336,7 +347,7 @@ export class App {
         mode: 'element',
         elementId: t.elementId,
         label: t.label,
-        kindLabel: this.kindLabels[t.kind],
+        kind: t.kind,
         line: t.line,
         activity: t.kind === 'activity',
       });
@@ -374,7 +385,7 @@ export class App {
     return {
       mode: 'element',
       label: t.label,
-      kindLabel: t.kindLabel,
+      kindLabel: this.t().targetKinds[t.kind],
       line: markerLine ?? t.line,
       props: model.elements[stereotype] ?? {},
     };
@@ -398,7 +409,7 @@ export class App {
             activity: t.activity,
           });
           if (!res) {
-            this.snackBar.open('Element konnte im Quelltext nicht gefunden werden.', 'OK', {
+            this.snackBar.open(this.t().snack.elementNotFound, this.t().common.ok, {
               duration: 4000,
             });
             return;
@@ -474,12 +485,12 @@ export class App {
     if (draft && draft.source.trim()) {
       this.source.set(draft.source);
       if (draft.svg) this.svg.set(draft.svg);
-      this.name.set(draft.name || 'Unbenanntes Diagramm');
+      this.name.set(draft.name || this.t().app.untitled);
       const stored = draft.id ? this.store.get(draft.id) : undefined;
       this.currentId.set(stored ? stored.id : null);
       this.savedSource.set(stored ? stored.source : null);
     } else {
-      this.loadTemplate(TEMPLATES[0], false);
+      this.loadTemplate(this.templates()[0], false);
     }
   }
 
@@ -505,7 +516,7 @@ export class App {
         StorageNoticeResult
       >(StorageNoticeDialogComponent, {
         data: {
-          name: asNew ? `${name} (Kopie)` : name,
+          name: asNew ? this.t().app.copyName(name) : name,
           showNotice: !prefs.storageNoticeAcknowledged,
         },
         width: '520px',
@@ -531,13 +542,12 @@ export class App {
       this.savedSource.set(saved.source);
       this.flushDraft();
       this.snackBar
-        .open(`„${saved.name}“ im Local Storage dieses Browsers gespeichert.`, 'Verlauf', {
-          duration: 3500,
-        })
+        .open(this.t().snack.saved(saved.name), this.t().snack.historyAction, { duration: 3500 })
         .onAction()
         .subscribe(() => this.sidebarOpen.set(true));
     } catch (err) {
-      this.snackBar.open(`Speichern fehlgeschlagen: ${(err as Error).message}`, 'OK', {
+      const reason = err instanceof StorageFullError ? this.t().snack.storageFull : String(err);
+      this.snackBar.open(this.t().snack.saveFailed(reason), this.t().common.ok, {
         duration: 6000,
       });
     }
@@ -563,8 +573,9 @@ export class App {
           });
         break;
       case 'duplicate': {
-        const copy = this.store.duplicate(diagram.id);
-        if (copy) this.snackBar.open(`„${copy.name}“ erstellt.`, undefined, { duration: 2500 });
+        const copy = this.store.duplicate(diagram.id, this.t().app.copyName);
+        if (copy)
+          this.snackBar.open(this.t().snack.created(copy.name), undefined, { duration: 2500 });
         break;
       }
       case 'export':
@@ -578,7 +589,7 @@ export class App {
           this.savedSource.set(null);
         }
         this.snackBar
-          .open(`„${removed.name}“ gelöscht.`, 'Rückgängig', { duration: 6000 })
+          .open(this.t().snack.deleted(removed.name), this.t().snack.undoAction, { duration: 6000 })
           .onAction()
           .subscribe(() => {
             this.store.restore(removed);
@@ -602,10 +613,7 @@ export class App {
   }
 
   protected loadTemplate(t: DiagramTemplate, undoable = true): void {
-    this.replaceDocument(
-      { id: null, name: `Neues ${t.label}`, source: t.source, saved: null },
-      undoable,
-    );
+    this.replaceDocument({ id: null, name: t.name, source: t.source, saved: null }, undoable);
     if (!this.wideSidebar()) this.sidebarOpen.set(false);
   }
 
@@ -630,7 +638,7 @@ export class App {
     this.savedSource.set(next.saved);
     if (undoable && wasDirty) {
       this.snackBar
-        .open('Ungespeicherte Änderungen wurden ersetzt.', 'Wiederherstellen', { duration: 7000 })
+        .open(this.t().snack.replaced, this.t().snack.restoreAction, { duration: 7000 })
         .onAction()
         .subscribe(() => this.replaceDocument(prev, false));
     }
@@ -665,7 +673,7 @@ export class App {
         background: this.pngTransparent() ? null : '#FFFFFF',
       });
     } catch (err) {
-      this.snackBar.open(`PNG-Export fehlgeschlagen: ${(err as Error).message}`, 'OK', {
+      this.snackBar.open(this.t().snack.pngFailed((err as Error).message), this.t().common.ok, {
         duration: 5000,
       });
     }
@@ -688,11 +696,9 @@ export class App {
         scale: 2,
         background: this.pngTransparent() ? null : '#FFFFFF',
       });
-      this.snackBar.open('PNG in die Zwischenablage kopiert.', undefined, { duration: 2500 });
+      this.snackBar.open(this.t().snack.pngCopied, undefined, { duration: 2500 });
     } catch {
-      this.snackBar.open('Kopieren wird von diesem Browser nicht unterstützt.', 'OK', {
-        duration: 4000,
-      });
+      this.snackBar.open(this.t().snack.copyUnsupported, this.t().common.ok, { duration: 4000 });
     }
   }
 
@@ -701,9 +707,9 @@ export class App {
     if (!svg) return;
     try {
       await this.exporter.copySvg(svg);
-      this.snackBar.open('SVG-Code in die Zwischenablage kopiert.', undefined, { duration: 2500 });
+      this.snackBar.open(this.t().snack.svgCopied, undefined, { duration: 2500 });
     } catch {
-      this.snackBar.open('Kopieren nicht möglich.', 'OK', { duration: 4000 });
+      this.snackBar.open(this.t().snack.copyFailed, this.t().common.ok, { duration: 4000 });
     }
   }
 
@@ -731,9 +737,11 @@ export class App {
   protected themeIcon = computed(
     () => ({ system: 'brightness_auto', light: 'light_mode', dark: 'dark_mode' })[this.themePref()],
   );
-  protected themeLabel = computed(
-    () => ({ system: 'System', light: 'Hell', dark: 'Dunkel' })[this.themePref()],
-  );
+  protected themeLabel = computed(() => this.t().app.colorSchemes[this.themePref()]);
+
+  protected setLanguage(pref: LanguagePreference): void {
+    void this.i18n.setPreference(pref);
+  }
 
   private applyTheme(): void {
     const root = document.documentElement;

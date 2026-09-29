@@ -1,4 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
+import type { LanguagePreference } from '../i18n/languages';
 
 export interface StoredDiagram {
   id: string;
@@ -32,6 +33,7 @@ export interface Prefs {
   wrap: boolean;
   sidebarOpen: boolean;
   fontSize: number;
+  language: LanguagePreference;
 }
 
 const DEFAULT_PREFS: Prefs = {
@@ -41,7 +43,16 @@ const DEFAULT_PREFS: Prefs = {
   wrap: false,
   sidebarOpen: true,
   fontSize: 14,
+  language: 'system',
 };
+
+/** Thrown by `save` when localStorage has no room left (message is localized by the caller). */
+export class StorageFullError extends Error {
+  constructor() {
+    super('localStorage is full');
+    this.name = 'StorageFullError';
+  }
+}
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -111,7 +122,7 @@ export class DiagramStoreService {
       const slim = existing
         ? this.list().map((d) => (d.id === diagram.id ? diagram : d))
         : [...this.list(), diagram];
-      if (!write(LIST_KEY, slim)) throw new Error('Der Local Storage ist voll.');
+      if (!write(LIST_KEY, slim)) throw new StorageFullError();
       this.list.set(slim);
       return diagram;
     }
@@ -125,12 +136,12 @@ export class DiagramStoreService {
     this.list.set(next);
   }
 
-  duplicate(id: string): StoredDiagram | undefined {
+  duplicate(id: string, copyName: (name: string) => string): StoredDiagram | undefined {
     const d = this.get(id);
     if (!d) return undefined;
     return this.save({
       id: null,
-      name: `${d.name} (Kopie)`,
+      name: copyName(d.name),
       source: d.source,
       thumbnail: d.thumbnail,
     });

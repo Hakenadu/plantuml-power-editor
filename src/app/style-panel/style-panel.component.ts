@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,6 +24,7 @@ import {
   GlobalSelector,
 } from '../core/plantuml-styles';
 import { ColorFieldComponent } from './color-field.component';
+import { I18nService } from '../i18n/i18n.service';
 
 export type StyleContext =
   | { mode: 'element'; label: string; kindLabel: string; props: StyleProps; line?: number }
@@ -57,22 +66,21 @@ export const FONTS = [
 
 interface SectionDef {
   selector: GlobalSelector;
-  label: string;
   icon: string;
   fields: StylePropKey[];
 }
 
 const GLOBAL_SECTIONS: SectionDef[] = [
-  { selector: 'document', label: 'Hintergrund', icon: 'wallpaper', fields: ['BackGroundColor'] },
+  { selector: 'document', icon: 'wallpaper', fields: ['BackGroundColor'] },
   {
     selector: 'root',
-    label: 'Schrift',
+
     icon: 'text_fields',
     fields: ['FontName', 'FontSize', 'FontColor', 'FontStyle'],
   },
   {
     selector: 'element',
-    label: 'Elemente',
+
     icon: 'category',
     fields: [
       'BackGroundColor',
@@ -86,19 +94,19 @@ const GLOBAL_SECTIONS: SectionDef[] = [
   },
   {
     selector: 'arrow',
-    label: 'Pfeile',
+
     icon: 'trending_flat',
     fields: ['LineColor', 'LineThickness', 'LineStyle', 'FontColor', 'FontSize'],
   },
   {
     selector: 'note',
-    label: 'Notizen',
+
     icon: 'sticky_note_2',
     fields: ['BackGroundColor', 'LineColor', 'FontColor', 'RoundCorner'],
   },
   {
     selector: 'title',
-    label: 'Titel',
+
     icon: 'title',
     fields: ['FontSize', 'FontColor', 'FontStyle', 'BackGroundColor'],
   },
@@ -142,6 +150,8 @@ export class StylePanelComponent {
   readonly change = output<StyleChange>();
   readonly close = output<void>();
   readonly jump = output<number>();
+
+  protected readonly t = inject(I18nService).t;
 
   readonly fonts = FONTS;
   readonly sections = GLOBAL_SECTIONS;
@@ -210,26 +220,8 @@ export class StylePanelComponent {
     this.change.emit({ type: 'handwritten', value });
   }
 
-  readonly LABELS: Record<StylePropKey, string> = {
-    BackGroundColor: 'Hintergrundfarbe',
-    LineColor: 'Rahmen- / Linienfarbe',
-    FontColor: 'Textfarbe',
-    FontName: 'Schriftart',
-    FontSize: 'Schriftgröße',
-    FontStyle: 'Schriftstil',
-    RoundCorner: 'Eckenradius',
-    LineThickness: 'Linienstärke',
-    LineStyle: 'Linienart',
-    Shadowing: 'Schatten',
-    Padding: 'Innenabstand',
-    Margin: 'Außenabstand',
-    HorizontalAlignment: 'Ausrichtung',
-    MaximumWidth: 'Maximale Breite',
-    HyperLinkColor: 'Linkfarbe',
-  };
-
-  label(key: string): string {
-    return this.LABELS[key as StylePropKey] ?? key;
+  label(key: StylePropKey): string {
+    return this.t().stylePanel.props[key] ?? key;
   }
 
   isColor(key: StylePropKey): boolean {

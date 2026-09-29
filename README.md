@@ -30,6 +30,9 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser 
 - **Persistenz im Local Storage** mit Hinweis beim Speichern, ausklappbare Seitenleiste mit allen
   gespeicherten Diagrammen (Vorschaubild, Suche, Umbenennen, Duplizieren, Löschen mit Rückgängig).
   Der aktuelle Arbeitsstand wird zusätzlich automatisch als Entwurf gesichert.
+- **Mehrsprachig** (Deutsch, Englisch): Standard ist die Sprache des Systems/Browsers, unter
+  _Mehr → Sprache_ lässt sie sich festlegen. Der Wechsel greift sofort, ohne Neuladen – inklusive
+  Autovervollständigung, Vorlagen und Fehlermeldungen.
 
 ## Wie das Styling funktioniert
 
@@ -67,6 +70,19 @@ Alle Änderungen landen als Editor-Transaktion im Quelltext und sind mit `Strg +
 | `Strg + Leertaste`    | Autovervollständigung                          |
 | `Strg + Mausrad`      | Zoom in der Vorschau                           |
 | `0` / `1` / `+` / `-` | Einpassen / 100 % / Zoom (Vorschau fokussiert) |
+
+## Mehrsprachigkeit
+
+Die Übersetzungen laufen zur Laufzeit über Signals (`I18nService.t()`), damit die Sprache ohne Reload
+und ohne separate Builds pro Sprache umgeschaltet werden kann. Jede Sprache ist ein eigenes, lazy
+geladenes Wörterbuch unter `src/app/i18n/locales/`. Deutsch (`de.ts`) ist die Referenz; alle anderen
+Sprachen sind als `Translations` typisiert, sodass fehlende Schlüssel ein Compile-Fehler sind.
+
+Neue Sprache hinzufügen:
+
+1. `src/app/i18n/locales/<code>.ts` anlegen (z. B. `en.ts` kopieren) und übersetzen.
+2. In `src/app/i18n/languages.ts` einen Eintrag in `LANGUAGES` ergänzen – bei Bedarf mit
+   `ngLocale` für Angulars Zahlen-/Datumsformate.
 
 ## Entwicklung
 

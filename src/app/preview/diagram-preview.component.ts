@@ -17,6 +17,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DiagramError, EngineState } from '../core/plantuml-engine.service';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface PreviewPointerEvent {
   element: Element;
@@ -53,6 +54,8 @@ export class DiagramPreviewComponent {
   readonly svg = input<string | null>(null);
   readonly error = input<DiagramError | null>(null);
   readonly rendering = input(false);
+  protected readonly i18n = inject(I18nService);
+  protected readonly t = this.i18n.t;
   readonly engineState = input<EngineState>('idle');
   readonly lastDuration = input<number | null>(null);
 

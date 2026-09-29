@@ -1,12 +1,13 @@
+@let tr = t().stylePanel;
 <header class="panel-head">
   <div class="title">
     @switch (context().mode) {
       @case ('global') {
-        <span class="eyebrow">Diagramm-Style</span>
-        <h2>Übergreifende Styles</h2>
+        <span class="eyebrow">{{ tr.diagramStyle }}</span>
+        <h2>{{ tr.globalTitle }}</h2>
       }
       @case ('link') {
-        <span class="eyebrow">Verbindung</span>
+        <span class="eyebrow">{{ tr.link }}</span>
         <h2 [title]="$any(context()).label">{{ $any(context()).label }}</h2>
       }
       @default {
@@ -19,8 +20,8 @@
     <button
       mat-icon-button
       (click)="jump.emit(line)"
-      matTooltip="Im Editor zeigen"
-      aria-label="Im Editor zeigen"
+      [matTooltip]="tr.showInEditor"
+      [attr.aria-label]="tr.showInEditor"
     >
       <mat-icon>code</mat-icon>
     </button>
@@ -28,8 +29,8 @@
   <button
     mat-icon-button
     (click)="close.emit()"
-    matTooltip="Schließen"
-    aria-label="Style-Panel schließen"
+    [matTooltip]="t().common.close"
+    [attr.aria-label]="tr.closeAria"
   >
     <mat-icon>close</mat-icon>
   </button>
@@ -43,9 +44,9 @@
       <section class="group">
         <div class="field">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full">
-            <mat-label>Theme</mat-label>
+            <mat-label>{{ tr.theme }}</mat-label>
             <mat-select [value]="ctx.model.theme" (valueChange)="themeChange($event)">
-              <mat-option [value]="null">– Kein Theme –</mat-option>
+              <mat-option [value]="null">{{ tr.noTheme }}</mat-option>
               @for (t of ctx.themes; track t.id) {
                 <mat-option [value]="t.id">{{ t.label }}</mat-option>
               }
@@ -54,7 +55,7 @@
           </mat-form-field>
         </div>
         <mat-slide-toggle [checked]="ctx.model.handwritten" (change)="handwritten($event.checked)">
-          Handgezeichnet
+          {{ tr.handwritten }}
         </mat-slide-toggle>
       </section>
 
@@ -68,7 +69,7 @@
             (click)="activeSection.set(s.selector)"
           >
             <mat-icon>{{ s.icon }}</mat-icon>
-            <span>{{ s.label }}</span>
+            <span>{{ tr.sections[s.selector] }}</span>
             @if (sectionHasValues(s.selector)) {
               <i class="dot"></i>
             }
@@ -91,7 +92,7 @@
           (click)="change.emit({ type: 'global-reset' })"
         >
           <mat-icon>format_color_reset</mat-icon>
-          Alle Diagramm-Styles entfernen
+          {{ tr.removeAllGlobal }}
         </button>
       }
     }
@@ -101,31 +102,31 @@
       @let ls = linkStyle();
       <section class="group fields">
         <pe-color-field
-          label="Linienfarbe"
+          [label]="tr.lineColor"
           [value]="ls.color"
           (valueChange)="emitLink({ color: $event })"
         />
 
         <div class="field">
-          <span class="label">Linienart</span>
+          <span class="label">{{ tr.lineStyle }}</span>
           <mat-button-toggle-group
             [value]="ls.style ?? 'plain'"
             (change)="emitLink({ style: $event.value === 'plain' ? undefined : $event.value })"
             hideSingleSelectionIndicator
           >
-            <mat-button-toggle value="plain" matTooltip="Durchgezogen"
+            <mat-button-toggle value="plain" [matTooltip]="tr.solid"
               ><span class="ls solid"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="dashed" matTooltip="Gestrichelt"
+            <mat-button-toggle value="dashed" [matTooltip]="tr.dashed"
               ><span class="ls dashed"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="dotted" matTooltip="Gepunktet"
+            <mat-button-toggle value="dotted" [matTooltip]="tr.dotted"
               ><span class="ls dotted"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="bold" matTooltip="Fett"
+            <mat-button-toggle value="bold" [matTooltip]="tr.bold"
               ><span class="ls bold"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="hidden" matTooltip="Unsichtbar"
+            <mat-button-toggle value="hidden" [matTooltip]="tr.hidden"
               ><mat-icon>visibility_off</mat-icon></mat-button-toggle
             >
           </mat-button-toggle-group>
@@ -133,8 +134,8 @@
 
         <div class="field">
           <div class="label-row">
-            <span class="label">Linienstärke</span>
-            <span class="val">{{ ls.thickness ?? 'Standard' }}</span>
+            <span class="label">{{ tr.lineThickness }}</span>
+            <span class="val">{{ ls.thickness ?? t().common.standard }}</span>
           </div>
           <mat-slider min="0" max="8" step="1" discrete>
             <input
@@ -148,7 +149,7 @@
       @if ($any(context()).sequence) {
         <p class="note">
           <mat-icon>info</mat-icon>
-          In Sequenzdiagrammen unterstützt PlantUML für Nachrichten vor allem die Farbe.
+          {{ tr.sequenceNote }}
         </p>
       }
       @if (ls.color || ls.style || ls.thickness) {
@@ -158,7 +159,7 @@
           (click)="change.emit({ type: 'link', style: {} })"
         >
           <mat-icon>format_color_reset</mat-icon>
-          Style der Verbindung entfernen
+          {{ tr.removeLinkStyle }}
         </button>
       }
     }
@@ -179,7 +180,7 @@
           (click)="change.emit({ type: 'element-reset' })"
         >
           <mat-icon>format_color_reset</mat-icon>
-          Styles dieses Elements entfernen
+          {{ tr.removeElementStyles }}
         </button>
       }
     }
@@ -201,7 +202,7 @@
         <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full">
           <mat-label>{{ label(key) }}</mat-label>
           <mat-select [value]="value ?? null" (valueChange)="emitProp(key, $event)">
-            <mat-option [value]="null">Standard</mat-option>
+            <mat-option [value]="null">{{ t().common.standard }}</mat-option>
             @for (f of fonts; track f) {
               <mat-option [value]="f"
                 ><span [style.font-family]="f">{{ f }}</span></mat-option
@@ -218,16 +219,16 @@
             (change)="emitProp(key, $event.value === 'plain' ? undefined : $event.value)"
             hideSingleSelectionIndicator
           >
-            <mat-button-toggle value="plain" matTooltip="Normal"
+            <mat-button-toggle value="plain" [matTooltip]="tr.plain"
               ><mat-icon>format_clear</mat-icon></mat-button-toggle
             >
-            <mat-button-toggle value="bold" matTooltip="Fett"
+            <mat-button-toggle value="bold" [matTooltip]="tr.bold"
               ><mat-icon>format_bold</mat-icon></mat-button-toggle
             >
-            <mat-button-toggle value="italic" matTooltip="Kursiv"
+            <mat-button-toggle value="italic" [matTooltip]="tr.italic"
               ><mat-icon>format_italic</mat-icon></mat-button-toggle
             >
-            <mat-button-toggle value="bold italic" matTooltip="Fett & kursiv"
+            <mat-button-toggle value="bold italic" [matTooltip]="tr.boldItalic"
               ><b><i>BI</i></b></mat-button-toggle
             >
           </mat-button-toggle-group>
@@ -241,16 +242,16 @@
             (change)="emitProp(key, $event.value === '0' ? undefined : $event.value)"
             hideSingleSelectionIndicator
           >
-            <mat-button-toggle value="0" matTooltip="Durchgezogen"
+            <mat-button-toggle value="0" [matTooltip]="tr.solid"
               ><span class="ls solid"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="10-6" matTooltip="Lang gestrichelt"
+            <mat-button-toggle value="10-6" [matTooltip]="tr.longDashed"
               ><span class="ls dashed-long"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="5" matTooltip="Gestrichelt"
+            <mat-button-toggle value="5" [matTooltip]="tr.dashed"
               ><span class="ls dashed"></span
             ></mat-button-toggle>
-            <mat-button-toggle value="1-4" matTooltip="Gepunktet"
+            <mat-button-toggle value="1-4" [matTooltip]="tr.dotted"
               ><span class="ls dotted"></span
             ></mat-button-toggle>
           </mat-button-toggle-group>
@@ -264,13 +265,13 @@
             (change)="emitProp(key, $event.value)"
             hideSingleSelectionIndicator
           >
-            <mat-button-toggle value="left" matTooltip="Links"
+            <mat-button-toggle value="left" [matTooltip]="tr.left"
               ><mat-icon>format_align_left</mat-icon></mat-button-toggle
             >
-            <mat-button-toggle value="center" matTooltip="Zentriert"
+            <mat-button-toggle value="center" [matTooltip]="tr.center"
               ><mat-icon>format_align_center</mat-icon></mat-button-toggle
             >
-            <mat-button-toggle value="right" matTooltip="Rechts"
+            <mat-button-toggle value="right" [matTooltip]="tr.right"
               ><mat-icon>format_align_right</mat-icon></mat-button-toggle
             >
           </mat-button-toggle-group>
@@ -288,13 +289,13 @@
                   mat-icon-button
                   class="mini"
                   (click)="emitProp(key, undefined)"
-                  matTooltip="Zurücksetzen"
-                  aria-label="Zurücksetzen"
+                  [matTooltip]="t().common.reset"
+                  [attr.aria-label]="t().common.reset"
                 >
                   <mat-icon>restart_alt</mat-icon>
                 </button>
               } @else {
-                Standard
+                {{ t().common.standard }}
               }
             </span>
           </div>

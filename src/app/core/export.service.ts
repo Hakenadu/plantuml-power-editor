@@ -87,7 +87,7 @@ export class ExportService {
       canvas.width = Math.ceil(width * s);
       canvas.height = Math.ceil(height * s);
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas nicht verfügbar');
+      if (!ctx) throw new Error('Canvas not available');
       if (background) {
         ctx.fillStyle = background;
         ctx.fillRect(0, 0, canvas.width, canvas.height);

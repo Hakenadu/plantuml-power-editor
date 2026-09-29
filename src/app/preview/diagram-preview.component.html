@@ -1,9 +1,10 @@
+@let tr = t().preview;
 <div
   #viewport
   class="viewport"
   tabindex="0"
   role="application"
-  aria-label="Diagramm-Vorschau. Klick auf ein Element öffnet das Kontextmenü. Strg + Mausrad zoomt."
+  [attr.aria-label]="tr.aria"
   (pointerdown)="onPointerDown($event)"
   (pointermove)="onPointerMove($event)"
   (pointerup)="onPointerUp($event)"
@@ -29,16 +30,16 @@
           </div>
           <div class="bar w40"></div>
         </div>
-        <p>PlantUML-Engine wird geladen …</p>
+        <p>{{ tr.loading }}</p>
       } @else if (engineState() === 'failed') {
         <mat-icon class="big">cloud_off</mat-icon>
-        <p>Die PlantUML-Engine konnte nicht geladen werden.</p>
+        <p>{{ tr.failed }}</p>
       } @else if (error()) {
         <mat-icon class="big err">report</mat-icon>
-        <p>Noch keine gültige Darstellung – bitte Fehler im Editor beheben.</p>
+        <p>{{ tr.noValidRender }}</p>
       } @else {
         <mat-icon class="big">draw</mat-icon>
-        <p>Beginne im Editor zu tippen …</p>
+        <p>{{ tr.startTyping }}</p>
       }
     </div>
   }
@@ -51,65 +52,55 @@
     <div class="error-banner overlay-ui" role="alert">
       <mat-icon class="filled-icon">error</mat-icon>
       <div class="msg">
-        <strong>
-          Syntaxfehler
-          @if (err.line) {
-            in Zeile {{ err.line }}
-          }
-        </strong>
+        <strong>{{ tr.syntaxError(err.line) }}</strong>
         <span class="detail">{{ err.message }}</span>
         @if (svg()) {
-          <span class="hint">Angezeigt wird der letzte funktionierende Stand.</span>
+          <span class="hint">{{ tr.lastGood }}</span>
         }
       </div>
       @if (err.line) {
         <button mat-button class="jump" (click)="jumpToError.emit()">
           <mat-icon>arrow_back</mat-icon>
-          Zur Zeile
+          {{ tr.toLine }}
         </button>
       }
     </div>
   }
 
-  <div class="zoom overlay-ui" role="toolbar" aria-label="Zoom">
+  <div class="zoom overlay-ui" role="toolbar" [attr.aria-label]="tr.zoomAria">
     <button
       mat-icon-button
       (click)="zoomBy(1 / 1.25)"
-      matTooltip="Verkleinern (−)"
-      aria-label="Verkleinern"
+      [matTooltip]="tr.zoomOutTooltip"
+      [attr.aria-label]="tr.zoomOut"
     >
       <mat-icon>remove</mat-icon>
     </button>
     <button
       class="pct"
       (click)="actualSize()"
-      matTooltip="Originalgröße (1)"
-      aria-label="Originalgröße"
+      [matTooltip]="tr.actualSizeTooltip"
+      [attr.aria-label]="tr.actualSize"
     >
-      {{ view().scale * 100 | number: '1.0-0' }}%
+      {{ view().scale * 100 | number: '1.0-0' : i18n.locale() }}%
     </button>
     <button
       mat-icon-button
       (click)="zoomBy(1.25)"
-      matTooltip="Vergrößern (+)"
-      aria-label="Vergrößern"
+      [matTooltip]="tr.zoomInTooltip"
+      [attr.aria-label]="tr.zoomIn"
     >
       <mat-icon>add</mat-icon>
     </button>
     <span class="sep"></span>
-    <button
-      mat-icon-button
-      (click)="fit()"
-      matTooltip="Einpassen (0 / Doppelklick)"
-      aria-label="Einpassen"
-    >
+    <button mat-icon-button (click)="fit()" [matTooltip]="tr.fitTooltip" [attr.aria-label]="tr.fit">
       <mat-icon>fit_screen</mat-icon>
     </button>
   </div>
 
   @if (lastDuration() !== null && svg()) {
     <div class="timing overlay-ui" aria-hidden="true">
-      {{ lastDuration() | number: '1.0-0' }} ms
+      {{ lastDuration() | number: '1.0-0' : i18n.locale() }} ms
     </div>
   }
 </div>

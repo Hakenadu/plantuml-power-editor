@@ -21,25 +21,6 @@ export type DiagramType =
   | 'salt'
   | 'other';
 
-export const DIAGRAM_TYPE_LABELS: Record<DiagramType, string> = {
-  sequence: 'Sequenzdiagramm',
-  class: 'Klassendiagramm',
-  activity: 'Aktivitätsdiagramm',
-  usecase: 'Use-Case-Diagramm',
-  component: 'Komponentendiagramm',
-  state: 'Zustandsdiagramm',
-  object: 'Objektdiagramm',
-  deployment: 'Deploymentdiagramm',
-  timing: 'Timingdiagramm',
-  mindmap: 'Mindmap',
-  wbs: 'Work Breakdown Structure',
-  gantt: 'Gantt-Diagramm',
-  json: 'JSON',
-  yaml: 'YAML',
-  salt: 'Salt (Wireframe)',
-  other: 'Diagramm',
-};
-
 export const SEQUENCE_PARTICIPANT_KEYWORDS = [
   'participant',
   'actor',

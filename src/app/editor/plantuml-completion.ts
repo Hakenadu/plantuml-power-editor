@@ -27,210 +27,236 @@ const kw = (label: string, detail?: string, boost = 0): Completion => ({
   boost,
 });
 
-const SEQUENCE_ARROWS: [string, string][] = [
-  ['->', 'synchrone Nachricht'],
-  ['-->', 'Antwort (gestrichelt)'],
-  ['->>', 'asynchrone Nachricht'],
-  ['-->>', 'asynchrone Antwort'],
-  ['<-', 'Nachricht (rückwärts)'],
-  ['<--', 'Antwort (rückwärts)'],
-  ['<->', 'bidirektional'],
-  ['->x', 'verlorene Nachricht'],
-  ['-\\', 'obere Halbspitze'],
-  ['-/', 'untere Halbspitze'],
-  ['->o', 'Nachricht mit Kreis'],
-  ['-[#red]>', 'farbige Nachricht'],
-];
+/** Localizable texts used by the completion source (see `Translations['completion']`). */
+export interface CompletionTexts {
+  sequenceArrows: Record<string, string>;
+  classArrows: Record<string, string>;
+  genericArrows: Record<string, string>;
+  detail: Record<string, string | ((n: number) => string)> & { level: (n: number) => string };
+  placeholder: Record<string, string>;
+}
 
-const CLASS_ARROWS: [string, string][] = [
-  ['<|--', 'Vererbung'],
-  ['<|..', 'Realisierung'],
-  ['*--', 'Komposition'],
-  ['o--', 'Aggregation'],
-  ['-->', 'gerichtete Assoziation'],
-  ['--', 'Assoziation'],
-  ['..>', 'Abhängigkeit'],
-  ['..|>', 'implementiert'],
-  ['--|>', 'erweitert'],
-  ['..', 'gestrichelte Linie'],
-  ['-[#red]->', 'farbige Beziehung'],
-  ['-up->', 'Beziehung nach oben'],
-  ['-left->', 'Beziehung nach links'],
-];
+type Catalog = ReturnType<typeof buildCatalog>;
 
-const GENERIC_ARROWS: [string, string][] = [
-  ['-->', 'Verbindung'],
-  ['->', 'kurze Verbindung'],
-  ['..>', 'gestrichelt'],
-  ['--', 'Linie'],
-  ['<-->', 'bidirektional'],
-  ['-up->', 'nach oben'],
-  ['-down->', 'nach unten'],
-  ['-left->', 'nach links'],
-  ['-right->', 'nach rechts'],
-  ['-[#red]->', 'farbig'],
-];
+/** Language-dependent completion catalogue; rebuilt whenever the UI language changes. */
+function buildCatalog(texts: CompletionTexts) {
+  const d = texts.detail as Record<string, string> & { level: (n: number) => string };
+  const p = texts.placeholder;
+  /** Snippet placeholder field, e.g. `${Titel}`. */
+  const ph = (key: string) => '${' + p[key] + '}';
 
-const COMMON_LINE_START: Completion[] = [
-  snip('title ${Titel}', { label: 'title', type: 'keyword', detail: 'Diagrammtitel' }),
-  snip('header ${Kopfzeile}', { label: 'header', type: 'keyword' }),
-  snip('footer ${Fußzeile}', { label: 'footer', type: 'keyword' }),
-  snip('caption ${Beschriftung}', { label: 'caption', type: 'keyword' }),
-  snip('legend\n\t${Legende}\nendlegend', { label: 'legend', type: 'keyword', detail: 'Block' }),
-  kw('skinparam', 'Darstellungsparameter'),
-  snip('<style>\n\t${element} {\n\t\tBackGroundColor #${FFFFFF}\n\t}\n</style>', {
-    label: '<style>',
-    type: 'keyword',
-    detail: 'Style-Block',
-  }),
-  kw('hide'),
-  kw('show'),
-  snip('scale ${1.5}', { label: 'scale', type: 'keyword' }),
-  snip('!theme ${cerulean}', { label: '!theme', type: 'keyword', detail: 'Theme' }),
-  snip('!include <${C4/C4_Container}>', {
-    label: '!include',
-    type: 'keyword',
-    detail: 'Standardbibliothek',
-  }),
-  snip('!define ${NAME} ${value}', { label: '!define', type: 'keyword' }),
-  { label: '!option handwritten true', type: 'keyword', detail: 'Handgezeichnet' },
-  snip('!procedure ${name}($${arg})\n\t${}\n!endprocedure', {
-    label: '!procedure',
-    type: 'keyword',
-  }),
-  snip('note ${left} : ${Notiz}', { label: 'note', type: 'keyword', detail: 'Notiz' }),
-];
+  const common: Completion[] = [
+    snip(`title ${ph('title')}`, { label: 'title', type: 'keyword', detail: d['title'] }),
+    snip(`header ${ph('header')}`, { label: 'header', type: 'keyword' }),
+    snip(`footer ${ph('footer')}`, { label: 'footer', type: 'keyword' }),
+    snip(`caption ${ph('caption')}`, { label: 'caption', type: 'keyword' }),
+    snip(`legend\n\t${ph('legend')}\nendlegend`, {
+      label: 'legend',
+      type: 'keyword',
+      detail: d['block'],
+    }),
+    kw('skinparam', d['skinparam']),
+    snip('<style>\n\t${element} {\n\t\tBackGroundColor #${FFFFFF}\n\t}\n</style>', {
+      label: '<style>',
+      type: 'keyword',
+      detail: d['styleBlock'],
+    }),
+    kw('hide'),
+    kw('show'),
+    snip('scale ${1.5}', { label: 'scale', type: 'keyword' }),
+    snip('!theme ${cerulean}', { label: '!theme', type: 'keyword', detail: d['theme'] }),
+    snip('!include <${C4/C4_Container}>', {
+      label: '!include',
+      type: 'keyword',
+      detail: d['stdlib'],
+    }),
+    snip('!define ${NAME} ${value}', { label: '!define', type: 'keyword' }),
+    { label: '!option handwritten true', type: 'keyword', detail: d['handwritten'] },
+    snip('!procedure ${name}($${arg})\n\t${}\n!endprocedure', {
+      label: '!procedure',
+      type: 'keyword',
+    }),
+    snip('note ${left} : ' + ph('note'), { label: 'note', type: 'keyword', detail: d['note'] }),
+  ];
 
-const SEQUENCE_LINE_START: Completion[] = [
-  ...SEQUENCE_PARTICIPANT_KEYWORDS.map((k) =>
-    snip(`${k} \${Name}`, { label: k, type: 'keyword', detail: 'Teilnehmer', boost: 2 }),
-  ),
-  snip('activate ${}', { label: 'activate', type: 'keyword' }),
-  snip('deactivate ${}', { label: 'deactivate', type: 'keyword' }),
-  snip('destroy ${}', { label: 'destroy', type: 'keyword' }),
-  snip('return ${Ergebnis}', { label: 'return', type: 'keyword' }),
-  kw('autonumber'),
-  kw('autoactivate on'),
-  snip('alt ${Bedingung}\n\t${}\nelse ${Sonst}\n\t\nend', {
-    label: 'alt',
-    type: 'keyword',
-    detail: 'Alternative',
-  }),
-  snip('opt ${Bedingung}\n\t${}\nend', { label: 'opt', type: 'keyword', detail: 'Optional' }),
-  snip('loop ${Wiederholung}\n\t${}\nend', { label: 'loop', type: 'keyword', detail: 'Schleife' }),
-  snip('par ${}\n\t\nelse\n\t\nend', { label: 'par', type: 'keyword', detail: 'Parallel' }),
-  snip('break ${}\n\t\nend', { label: 'break', type: 'keyword' }),
-  snip('critical ${}\n\t\nend', { label: 'critical', type: 'keyword' }),
-  snip('group ${Name}\n\t${}\nend', { label: 'group', type: 'keyword' }),
-  snip('box "${Titel}" #${LightBlue}\n\t${}\nend box', { label: 'box', type: 'keyword' }),
-  snip('ref over ${A}, ${B} : ${Referenz}', { label: 'ref over', type: 'keyword' }),
-  kw('else'),
-  kw('end'),
-  snip('== ${Abschnitt} ==', { label: '==', type: 'keyword', detail: 'Trenner' }),
-  snip('... ${Verzögerung} ...', { label: '...', type: 'keyword', detail: 'Verzögerung' }),
-  kw('|||', 'Abstand'),
-  kw('newpage'),
-  snip('hnote over ${A} : ${Text}', { label: 'hnote', type: 'keyword' }),
-  snip('rnote over ${A} : ${Text}', { label: 'rnote', type: 'keyword' }),
-  kw('hide footbox'),
-];
+  const sequence: Completion[] = [
+    ...SEQUENCE_PARTICIPANT_KEYWORDS.map((k) =>
+      snip(`${k} ${ph('name')}`, { label: k, type: 'keyword', detail: d['participant'], boost: 2 }),
+    ),
+    snip('activate ${}', { label: 'activate', type: 'keyword' }),
+    snip('deactivate ${}', { label: 'deactivate', type: 'keyword' }),
+    snip('destroy ${}', { label: 'destroy', type: 'keyword' }),
+    snip(`return ${ph('result')}`, { label: 'return', type: 'keyword' }),
+    kw('autonumber'),
+    kw('autoactivate on'),
+    snip(`alt ${ph('condition')}\n\t` + '${}' + `\nelse ${ph('otherwise')}\n\t\nend`, {
+      label: 'alt',
+      type: 'keyword',
+      detail: d['alternative'],
+    }),
+    snip(`opt ${ph('condition')}\n\t` + '${}\nend', {
+      label: 'opt',
+      type: 'keyword',
+      detail: d['optional'],
+    }),
+    snip(`loop ${ph('repetition')}\n\t` + '${}\nend', {
+      label: 'loop',
+      type: 'keyword',
+      detail: d['loop'],
+    }),
+    snip('par ${}\n\t\nelse\n\t\nend', { label: 'par', type: 'keyword', detail: d['parallel'] }),
+    snip('break ${}\n\t\nend', { label: 'break', type: 'keyword' }),
+    snip('critical ${}\n\t\nend', { label: 'critical', type: 'keyword' }),
+    snip(`group ${ph('name')}\n\t` + '${}\nend', { label: 'group', type: 'keyword' }),
+    snip(`box "${ph('title')}" #` + '${LightBlue}\n\t${}\nend box', {
+      label: 'box',
+      type: 'keyword',
+    }),
+    snip('ref over ${A}, ${B} : ' + ph('reference'), { label: 'ref over', type: 'keyword' }),
+    kw('else'),
+    kw('end'),
+    snip(`== ${ph('section')} ==`, { label: '==', type: 'keyword', detail: d['divider'] }),
+    snip(`... ${ph('delay')} ...`, { label: '...', type: 'keyword', detail: d['delay'] }),
+    kw('|||', d['spacing']),
+    kw('newpage'),
+    snip('hnote over ${A} : ${Text}', { label: 'hnote', type: 'keyword' }),
+    snip('rnote over ${A} : ${Text}', { label: 'rnote', type: 'keyword' }),
+    kw('hide footbox'),
+  ];
 
-const CLASS_LINE_START: Completion[] = [
-  ...CLASS_KEYWORDS.map((k) =>
-    snip(`${k} \${Name}`, { label: k, type: 'keyword', detail: 'Klassifizierer', boost: 2 }),
-  ),
-  snip('class ${Name} {\n\t${+feld: Typ}\n\t+methode()\n}', {
-    label: 'class {…}',
-    type: 'keyword',
-    detail: 'mit Body',
-  }),
-  snip('package ${Name} {\n\t${}\n}', { label: 'package', type: 'keyword' }),
-  snip('namespace ${Name} {\n\t${}\n}', { label: 'namespace', type: 'keyword' }),
-  kw('hide empty members'),
-  kw('hide circle'),
-  kw('left to right direction'),
-  kw('top to bottom direction'),
-  kw('allowmixing'),
-  kw('together'),
-];
+  const classes: Completion[] = [
+    ...CLASS_KEYWORDS.map((k) =>
+      snip(`${k} ${ph('name')}`, { label: k, type: 'keyword', detail: d['classifier'], boost: 2 }),
+    ),
+    snip(`class ${ph('name')} {\n\t${ph('field')}\n\t${p['method']}\n}`, {
+      label: 'class {…}',
+      type: 'keyword',
+      detail: d['withBody'],
+    }),
+    snip(`package ${ph('name')} {\n\t` + '${}\n}', { label: 'package', type: 'keyword' }),
+    snip(`namespace ${ph('name')} {\n\t` + '${}\n}', { label: 'namespace', type: 'keyword' }),
+    kw('hide empty members'),
+    kw('hide circle'),
+    kw('left to right direction'),
+    kw('top to bottom direction'),
+    kw('allowmixing'),
+    kw('together'),
+  ];
 
-const ACTIVITY_LINE_START: Completion[] = [
-  kw('start', undefined, 3),
-  kw('stop', undefined, 2),
-  kw('end'),
-  kw('kill'),
-  kw('detach'),
-  snip(':${Aktion};', { label: ':…;', type: 'keyword', detail: 'Aktion', boost: 3 }),
-  snip('if (${Bedingung}?) then (${ja})\n\t${}\nelse (${nein})\n\t\nendif', {
-    label: 'if',
-    type: 'keyword',
-    detail: 'Verzweigung',
-    boost: 2,
-  }),
-  snip('elseif (${Bedingung}) then (${ja})', { label: 'elseif', type: 'keyword' }),
-  snip('else (${nein})', { label: 'else', type: 'keyword' }),
-  kw('endif'),
-  snip('while (${Bedingung}?) is (${ja})\n\t${}\nendwhile (${nein})', {
-    label: 'while',
-    type: 'keyword',
-    detail: 'Schleife',
-  }),
-  kw('endwhile'),
-  snip('repeat\n\t${}\nrepeat while (${Bedingung}?)', { label: 'repeat', type: 'keyword' }),
-  snip('fork\n\t${}\nfork again\n\t\nend fork', {
-    label: 'fork',
-    type: 'keyword',
-    detail: 'Parallel',
-  }),
-  kw('fork again'),
-  kw('end fork'),
-  snip('split\n\t${}\nsplit again\n\t\nend split', { label: 'split', type: 'keyword' }),
-  snip('switch (${Wert})\ncase (${A})\n\t${}\nendswitch', { label: 'switch', type: 'keyword' }),
-  snip('partition ${Name} {\n\t${}\n}', { label: 'partition', type: 'keyword' }),
-  snip('|${Swimlane}|', { label: '|Swimlane|', type: 'keyword', detail: 'Swimlane' }),
-  snip('note right\n\t${Notiz}\nend note', { label: 'note right', type: 'keyword' }),
-  kw('backward'),
-];
+  const activity: Completion[] = [
+    kw('start', undefined, 3),
+    kw('stop', undefined, 2),
+    kw('end'),
+    kw('kill'),
+    kw('detach'),
+    snip(`:${ph('action')};`, { label: ':…;', type: 'keyword', detail: d['action'], boost: 3 }),
+    snip(
+      `if (${ph('condition')}?) then (${ph('yes')})\n\t` +
+        '${}' +
+        `\nelse (${ph('no')})\n\t\nendif`,
+      { label: 'if', type: 'keyword', detail: d['branch'], boost: 2 },
+    ),
+    snip(`elseif (${ph('condition')}) then (${ph('yes')})`, { label: 'elseif', type: 'keyword' }),
+    snip(`else (${ph('no')})`, { label: 'else', type: 'keyword' }),
+    kw('endif'),
+    snip(`while (${ph('condition')}?) is (${ph('yes')})\n\t` + '${}' + `\nendwhile (${ph('no')})`, {
+      label: 'while',
+      type: 'keyword',
+      detail: d['loop'],
+    }),
+    kw('endwhile'),
+    snip('repeat\n\t${}\nrepeat while (' + ph('condition') + '?)', {
+      label: 'repeat',
+      type: 'keyword',
+    }),
+    snip('fork\n\t${}\nfork again\n\t\nend fork', {
+      label: 'fork',
+      type: 'keyword',
+      detail: d['parallel'],
+    }),
+    kw('fork again'),
+    kw('end fork'),
+    snip('split\n\t${}\nsplit again\n\t\nend split', { label: 'split', type: 'keyword' }),
+    snip(`switch (${ph('value')})\ncase (` + '${A})\n\t${}\nendswitch', {
+      label: 'switch',
+      type: 'keyword',
+    }),
+    snip(`partition ${ph('name')} {\n\t` + '${}\n}', { label: 'partition', type: 'keyword' }),
+    snip('|${Swimlane}|', { label: '|Swimlane|', type: 'keyword', detail: 'Swimlane' }),
+    snip(`note right\n\t${ph('note')}\nend note`, { label: 'note right', type: 'keyword' }),
+    kw('backward'),
+  ];
 
-const STATE_LINE_START: Completion[] = [
-  snip('state ${Name}', { label: 'state', type: 'keyword', boost: 2 }),
-  snip('state ${Name} {\n\t${}\n}', {
-    label: 'state {…}',
-    type: 'keyword',
-    detail: 'zusammengesetzt',
-  }),
-  snip('[*] --> ${Start}', { label: '[*] -->', type: 'keyword', detail: 'Startzustand', boost: 2 }),
-  snip('state ${Name} <<choice>>', { label: 'choice', type: 'keyword' }),
-  snip('state ${Name} <<fork>>', { label: 'fork', type: 'keyword' }),
-  kw('hide empty description'),
-];
+  const state: Completion[] = [
+    snip(`state ${ph('name')}`, { label: 'state', type: 'keyword', boost: 2 }),
+    snip(`state ${ph('name')} {\n\t` + '${}\n}', {
+      label: 'state {…}',
+      type: 'keyword',
+      detail: d['composite'],
+    }),
+    snip(`[*] --> ${ph('start')}`, {
+      label: '[*] -->',
+      type: 'keyword',
+      detail: d['initialState'],
+      boost: 2,
+    }),
+    snip(`state ${ph('name')} <<choice>>`, { label: 'choice', type: 'keyword' }),
+    snip(`state ${ph('name')} <<fork>>`, { label: 'fork', type: 'keyword' }),
+    kw('hide empty description'),
+  ];
 
-const USECASE_LINE_START: Completion[] = [
-  snip('actor ${Name}', { label: 'actor', type: 'keyword', boost: 2 }),
-  snip('usecase (${Name}) as ${UC}', { label: 'usecase', type: 'keyword', boost: 2 }),
-  snip('(${Anwendungsfall})', { label: '(…)', type: 'keyword', detail: 'Use Case' }),
-  snip('rectangle ${System} {\n\t${}\n}', {
-    label: 'rectangle',
-    type: 'keyword',
-    detail: 'Systemgrenze',
-  }),
-  snip('package ${Name} {\n\t${}\n}', { label: 'package', type: 'keyword' }),
-  kw('left to right direction'),
-];
+  const usecase: Completion[] = [
+    snip(`actor ${ph('name')}`, { label: 'actor', type: 'keyword', boost: 2 }),
+    snip(`usecase (${ph('name')}) as ` + '${UC}', { label: 'usecase', type: 'keyword', boost: 2 }),
+    snip(`(${ph('useCase')})`, { label: '(…)', type: 'keyword', detail: d['useCase'] }),
+    snip(`rectangle ${ph('system')} {\n\t` + '${}\n}', {
+      label: 'rectangle',
+      type: 'keyword',
+      detail: d['systemBoundary'],
+    }),
+    snip(`package ${ph('name')} {\n\t` + '${}\n}', { label: 'package', type: 'keyword' }),
+    kw('left to right direction'),
+  ];
 
-const DEPLOYMENT_LINE_START: Completion[] = [
-  ...DEPLOYMENT_KEYWORDS.map((k) => snip(`${k} \${Name}`, { label: k, type: 'keyword', boost: 1 })),
-  snip('[${Komponente}]', { label: '[…]', type: 'keyword', detail: 'Komponente' }),
-  snip('node ${Name} {\n\t${}\n}', { label: 'node {…}', type: 'keyword' }),
-  kw('left to right direction'),
-];
+  const deployment: Completion[] = [
+    ...DEPLOYMENT_KEYWORDS.map((k) =>
+      snip(`${k} ${ph('name')}`, { label: k, type: 'keyword', boost: 1 }),
+    ),
+    snip(`[${ph('component')}]`, { label: '[…]', type: 'keyword', detail: d['component'] }),
+    snip(`node ${ph('name')} {\n\t` + '${}\n}', { label: 'node {…}', type: 'keyword' }),
+    kw('left to right direction'),
+  ];
 
-const MINDMAP_LINE_START: Completion[] = [
-  snip('* ${Wurzel}', { label: '*', type: 'keyword', detail: 'Ebene 1' }),
-  snip('** ${Knoten}', { label: '**', type: 'keyword', detail: 'Ebene 2' }),
-  snip('*** ${Knoten}', { label: '***', type: 'keyword', detail: 'Ebene 3' }),
-  snip('left side', { label: 'left side', type: 'keyword' }),
-];
+  const mindmap: Completion[] = [
+    snip(`* ${ph('root')}`, { label: '*', type: 'keyword', detail: d.level(1) }),
+    snip(`** ${ph('node')}`, { label: '**', type: 'keyword', detail: d.level(2) }),
+    snip(`*** ${ph('node')}`, { label: '***', type: 'keyword', detail: d.level(3) }),
+    snip('left side', { label: 'left side', type: 'keyword' }),
+  ];
+
+  const object = snip(`object ${ph('name')}`, { label: 'object', type: 'keyword' });
+
+  return {
+    texts,
+    detail: d,
+    common,
+    sequence,
+    classes,
+    activity,
+    state,
+    usecase,
+    deployment,
+    mindmap,
+    object,
+  };
+}
+
+let catalog: Catalog | null = null;
+
+/** Sets the language of completion details and snippet placeholders. */
+export function setCompletionTexts(texts: CompletionTexts): void {
+  if (catalog?.texts !== texts) catalog = buildCatalog(texts);
+}
 
 const DIRECTIVES: Completion[] = [
   '@startuml',
@@ -356,14 +382,14 @@ function elementCompletions(source: string, type: DiagramType, boost = 5): Compl
   }));
 }
 
-function arrowCompletions(type: DiagramType): Completion[] {
+function arrowCompletions(type: DiagramType, c: CompletionTexts): Completion[] {
   const list =
     type === 'sequence'
-      ? SEQUENCE_ARROWS
+      ? c.sequenceArrows
       : type === 'class' || type === 'object'
-        ? CLASS_ARROWS
-        : GENERIC_ARROWS;
-  return list.map(([label, detail], i) => ({
+        ? c.classArrows
+        : c.genericArrows;
+  return Object.entries(list).map(([label, detail], i) => ({
     label,
     detail,
     type: 'operator',
@@ -371,31 +397,27 @@ function arrowCompletions(type: DiagramType): Completion[] {
   }));
 }
 
-function lineStartCompletions(type: DiagramType): Completion[] {
+function lineStartCompletions(type: DiagramType, cat: Catalog): Completion[] {
   switch (type) {
     case 'sequence':
-      return [...SEQUENCE_LINE_START, ...COMMON_LINE_START];
+      return [...cat.sequence, ...cat.common];
     case 'class':
     case 'object':
-      return [
-        ...CLASS_LINE_START,
-        snip('object ${Name}', { label: 'object', type: 'keyword' }),
-        ...COMMON_LINE_START,
-      ];
+      return [...cat.classes, cat.object, ...cat.common];
     case 'activity':
-      return [...ACTIVITY_LINE_START, ...COMMON_LINE_START];
+      return [...cat.activity, ...cat.common];
     case 'state':
-      return [...STATE_LINE_START, ...COMMON_LINE_START];
+      return [...cat.state, ...cat.common];
     case 'usecase':
-      return [...USECASE_LINE_START, ...COMMON_LINE_START];
+      return [...cat.usecase, ...cat.common];
     case 'component':
     case 'deployment':
-      return [...DEPLOYMENT_LINE_START, ...COMMON_LINE_START];
+      return [...cat.deployment, ...cat.common];
     case 'mindmap':
     case 'wbs':
-      return [...MINDMAP_LINE_START, ...COMMON_LINE_START];
+      return [...cat.mindmap, ...cat.common];
     default:
-      return COMMON_LINE_START;
+      return cat.common;
   }
 }
 
@@ -419,6 +441,9 @@ function inStyleBlock(ctx: CompletionContext): boolean {
 
 /** The core completion source. Pure function of document + cursor. */
 export function plantumlCompletions(ctx: CompletionContext): CompletionResult | null {
+  const cat = catalog;
+  if (!cat) return null;
+  const detail = cat.detail;
   const line = ctx.state.doc.lineAt(ctx.pos);
   const prefix = line.text.slice(0, ctx.pos - line.from);
   const source = ctx.state.doc.toString();
@@ -465,7 +490,7 @@ export function plantumlCompletions(ctx: CompletionContext): CompletionResult | 
   // !theme <name>
   if (/^\s*!theme\s+[\w-]*$/.test(prefix)) {
     return result(
-      themeIds.map((id) => ({ label: id, type: 'constant', detail: 'Theme' })),
+      themeIds.map((id) => ({ label: id, type: 'constant', detail: detail['theme'] })),
       /^[\w-]*$/,
     );
   }
@@ -486,11 +511,11 @@ export function plantumlCompletions(ctx: CompletionContext): CompletionResult | 
   if (isRightOfArrow(beforeWord)) {
     const extras: Completion[] = [];
     if (type === 'sequence') {
-      extras.push({ label: ']', detail: 'nach außen (rechts)', type: 'operator' });
-      extras.push({ label: '[', detail: 'nach außen (links)', type: 'operator' });
+      extras.push({ label: ']', detail: detail['outRight'], type: 'operator' });
+      extras.push({ label: '[', detail: detail['outLeft'], type: 'operator' });
     }
     if (type === 'state')
-      extras.push({ label: '[*]', detail: 'Endzustand', type: 'operator', boost: 1 });
+      extras.push({ label: '[*]', detail: detail['finalState'], type: 'operator', boost: 1 });
     return result([...elements, ...extras]);
   }
 
@@ -508,7 +533,7 @@ export function plantumlCompletions(ctx: CompletionContext): CompletionResult | 
     if (known || explicit) {
       return {
         from: ctx.pos - typed.length,
-        options: arrowCompletions(type),
+        options: arrowCompletions(type, cat.texts),
         validFor: /^[-.<>|*ox#\[\]\w]*$/,
       };
     }
@@ -519,7 +544,7 @@ export function plantumlCompletions(ctx: CompletionContext): CompletionResult | 
   if (typingArrow) {
     return {
       from: ctx.pos - typingArrow[1].length,
-      options: arrowCompletions(type),
+      options: arrowCompletions(type, cat.texts),
       validFor: /^[-.<>|*ox]*$/,
     };
   }
@@ -581,7 +606,7 @@ export function plantumlCompletions(ctx: CompletionContext): CompletionResult | 
   if (/^\s*$/.test(beforeWord)) {
     if (!typed && !explicit) return null;
     return result([
-      ...lineStartCompletions(type),
+      ...lineStartCompletions(type, cat),
       ...elementCompletions(source, type, 1),
       ...DIRECTIVES.map((d) => ({ ...d, boost: -5 })),
     ]);

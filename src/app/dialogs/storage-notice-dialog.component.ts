@@ -5,6 +5,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface StorageNoticeData {
   name: string;
@@ -31,11 +32,11 @@ export interface StorageNoticeResult {
   template: `
     <h2 mat-dialog-title>
       <mat-icon class="filled-icon">save</mat-icon>
-      Diagramm speichern
+      {{ t().dialogs.saveTitle }}
     </h2>
     <mat-dialog-content>
       <mat-form-field appearance="outline" class="full">
-        <mat-label>Name</mat-label>
+        <mat-label>{{ t().common.name }}</mat-label>
         <input
           matInput
           [value]="name()"
@@ -49,29 +50,23 @@ export interface StorageNoticeResult {
         <div class="notice">
           <mat-icon>info</mat-icon>
           <div>
-            <strong>Gespeichert wird im Local Storage deines Browsers.</strong>
+            <strong>{{ t().dialogs.noticeTitle }}</strong>
             <ul>
-              <li>Die Daten verlassen dein Gerät nicht und werden nicht synchronisiert.</li>
-              <li>
-                Beim Löschen der Browserdaten, im privaten Modus oder in einem anderen Browser sind
-                sie nicht verfügbar.
-              </li>
-              <li>
-                Der Speicher ist begrenzt (typisch ca. 5 MB) – exportiere wichtige Diagramme
-                zusätzlich als Datei.
-              </li>
+              @for (point of t().dialogs.noticePoints; track $index) {
+                <li>{{ point }}</li>
+              }
             </ul>
           </div>
         </div>
-        <mat-checkbox [checked]="dontShow()" (change)="dontShow.set($event.checked)"
-          >Diesen Hinweis nicht mehr anzeigen</mat-checkbox
-        >
+        <mat-checkbox [checked]="dontShow()" (change)="dontShow.set($event.checked)">{{
+          t().dialogs.dontShowAgain
+        }}</mat-checkbox>
       }
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-      <button mat-button mat-dialog-close>Abbrechen</button>
+      <button mat-button mat-dialog-close>{{ t().common.cancel }}</button>
       <button mat-flat-button (click)="confirm()" [disabled]="!name().trim()">
-        Im Browser speichern
+        {{ t().dialogs.saveInBrowser }}
       </button>
     </mat-dialog-actions>
   `,
@@ -108,6 +103,7 @@ export interface StorageNoticeResult {
   `,
 })
 export class StorageNoticeDialogComponent {
+  protected readonly t = inject(I18nService).t;
   readonly data = inject<StorageNoticeData>(MAT_DIALOG_DATA);
   private readonly ref =
     inject<MatDialogRef<StorageNoticeDialogComponent, StorageNoticeResult>>(MatDialogRef);

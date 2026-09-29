@@ -7,7 +7,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { StoredDiagram } from '../core/diagram-store.service';
-import { detectDiagramType, DIAGRAM_TYPE_LABELS } from '../core/plantuml-analysis';
+import { detectDiagramType } from '../core/plantuml-analysis';
+import { I18nService } from '../i18n/i18n.service';
 
 export interface DiagramAction {
   action: 'open' | 'rename' | 'duplicate' | 'delete' | 'export';
@@ -19,19 +20,20 @@ export interface DiagramAction {
   imports: [MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @let tr = t().sidebar;
     <div class="head">
       <div class="brand">
         <img src="favicon.svg" alt="" width="28" height="28" />
         <div>
-          <strong>Meine Diagramme</strong>
-          <span>{{ diagrams().length }} gespeichert · Local Storage</span>
+          <strong>{{ tr.title }}</strong>
+          <span>{{ tr.count(diagrams().length) }}</span>
         </div>
       </div>
       <button
         mat-icon-button
         (click)="closed.emit()"
-        matTooltip="Seitenleiste schließen"
-        aria-label="Seitenleiste schließen"
+        [matTooltip]="tr.closeAria"
+        [attr.aria-label]="tr.closeAria"
       >
         <mat-icon>left_panel_close</mat-icon>
       </button>
@@ -40,7 +42,7 @@ export interface DiagramAction {
     <div class="actions">
       <button mat-flat-button class="new" (click)="create.emit()">
         <mat-icon>add</mat-icon>
-        Neues Diagramm
+        {{ tr.newDiagram }}
       </button>
     </div>
 
@@ -48,10 +50,10 @@ export interface DiagramAction {
       <label class="search">
         <mat-icon>search</mat-icon>
         <input
-          placeholder="Suchen …"
+          [placeholder]="tr.search"
           [value]="query()"
           (input)="query.set($any($event.target).value)"
-          aria-label="Diagramme durchsuchen"
+          [attr.aria-label]="tr.searchAria"
         />
       </label>
     }
@@ -82,26 +84,26 @@ export interface DiagramAction {
             class="more"
             [matMenuTriggerFor]="menu"
             (click)="$event.stopPropagation()"
-            aria-label="Aktionen"
+            [attr.aria-label]="tr.actionsAria"
           >
             <mat-icon>more_vert</mat-icon>
           </button>
           <mat-menu #menu="matMenu" xPosition="before">
             <button mat-menu-item (click)="action.emit({ action: 'rename', diagram: d })">
-              <mat-icon>edit</mat-icon>Umbenennen
+              <mat-icon>edit</mat-icon>{{ t().common.rename }}
             </button>
             <button mat-menu-item (click)="action.emit({ action: 'duplicate', diagram: d })">
-              <mat-icon>content_copy</mat-icon>Duplizieren
+              <mat-icon>content_copy</mat-icon>{{ tr.duplicate }}
             </button>
             <button mat-menu-item (click)="action.emit({ action: 'export', diagram: d })">
-              <mat-icon>download</mat-icon>Als .puml herunterladen
+              <mat-icon>download</mat-icon>{{ tr.downloadPuml }}
             </button>
             <button
               mat-menu-item
               class="danger"
               (click)="action.emit({ action: 'delete', diagram: d })"
             >
-              <mat-icon>delete</mat-icon>Löschen
+              <mat-icon>delete</mat-icon>{{ tr.delete }}
             </button>
           </mat-menu>
         </div>
@@ -109,12 +111,12 @@ export interface DiagramAction {
         <div class="empty">
           <mat-icon>inventory_2</mat-icon>
           @if (query()) {
-            <p>Keine Treffer für „{{ query() }}“.</p>
+            <p>{{ tr.noMatches(query()) }}</p>
           } @else {
-            <p>Noch keine Diagramme gespeichert.</p>
+            <p>{{ tr.empty }}</p>
             <p class="hint">
-              Mit <kbd>Strg</kbd> + <kbd>S</kbd> speicherst du das aktuelle Diagramm im Local
-              Storage dieses Browsers.
+              {{ tr.emptyHintBefore }} <kbd>{{ t().keys.ctrl }}</kbd> + <kbd>S</kbd>
+              {{ tr.emptyHintAfter }}
             </p>
           }
         </div>
@@ -123,10 +125,7 @@ export interface DiagramAction {
 
     <div class="foot">
       <mat-icon>info</mat-icon>
-      <span
-        >Daten liegen nur lokal in diesem Browser ({{ usageKb() | number: '1.0-0' }} KB
-        belegt).</span
-      >
+      <span>{{ tr.usage((usageKb() | number: '1.0-0' : i18n.locale()) ?? '0') }}</span>
     </div>
   `,
   styleUrl: './diagram-list.component.scss',
@@ -138,6 +137,9 @@ export class DiagramListComponent {
   readonly action = output<DiagramAction>();
   readonly create = output<void>();
   readonly closed = output<void>();
+
+  protected readonly i18n = inject(I18nService);
+  protected readonly t = this.i18n.t;
 
   readonly query = signal('');
   readonly filtered = computed(() => {
@@ -163,17 +165,18 @@ export class DiagramListComponent {
   }
 
   typeLabel(d: StoredDiagram): string {
-    return DIAGRAM_TYPE_LABELS[detectDiagramType(d.source)];
+    return this.t().diagramTypes[detectDiagramType(d.source)];
   }
 
   relative(ts: number): string {
     const diff = (Date.now() - ts) / 1000;
-    const rtf = new Intl.RelativeTimeFormat('de', { numeric: 'auto' });
-    if (diff < 60) return 'gerade eben';
+    const locale = this.i18n.locale();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (diff < 60) return this.t().sidebar.justNow;
     if (diff < 3600) return rtf.format(-Math.round(diff / 60), 'minute');
     if (diff < 86400) return rtf.format(-Math.round(diff / 3600), 'hour');
     if (diff < 86400 * 7) return rtf.format(-Math.round(diff / 86400), 'day');
-    return new Date(ts).toLocaleDateString('de-DE', {
+    return new Date(ts).toLocaleDateString(locale, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

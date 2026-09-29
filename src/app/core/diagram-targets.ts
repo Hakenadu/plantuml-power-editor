@@ -17,15 +17,6 @@ export interface DiagramTarget {
   node?: SVGGraphicsElement;
 }
 
-export const TARGET_KIND_LABELS: Record<TargetKind, string> = {
-  element: 'Element',
-  link: 'Verbindung',
-  message: 'Nachricht',
-  activity: 'Aktivität',
-  text: 'Text',
-  group: 'Gruppe',
-};
-
 const SHAPES = 'rect, path, polygon, ellipse, circle, line, polyline, text, image';
 
 function textOf(el: Element): string {
