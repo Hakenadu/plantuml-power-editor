@@ -1,0 +1,312 @@
+<header class="panel-head">
+  <div class="title">
+    @switch (context().mode) {
+      @case ('global') {
+        <span class="eyebrow">Diagramm-Style</span>
+        <h2>Übergreifende Styles</h2>
+      }
+      @case ('link') {
+        <span class="eyebrow">Verbindung</span>
+        <h2 [title]="$any(context()).label">{{ $any(context()).label }}</h2>
+      }
+      @default {
+        <span class="eyebrow">{{ $any(context()).kindLabel }}</span>
+        <h2 [title]="$any(context()).label">{{ $any(context()).label }}</h2>
+      }
+    }
+  </div>
+  @if ($any(context()).line; as line) {
+    <button
+      mat-icon-button
+      (click)="jump.emit(line)"
+      matTooltip="Im Editor zeigen"
+      aria-label="Im Editor zeigen"
+    >
+      <mat-icon>code</mat-icon>
+    </button>
+  }
+  <button
+    mat-icon-button
+    (click)="close.emit()"
+    matTooltip="Schließen"
+    aria-label="Style-Panel schließen"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+</header>
+
+<div class="panel-body">
+  @switch (context().mode) {
+    <!-- ============================ GLOBAL ============================ -->
+    @case ('global') {
+      @let ctx = $any(context());
+      <section class="group">
+        <div class="field">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full">
+            <mat-label>Theme</mat-label>
+            <mat-select [value]="ctx.model.theme" (valueChange)="themeChange($event)">
+              <mat-option [value]="null">– Kein Theme –</mat-option>
+              @for (t of ctx.themes; track t.id) {
+                <mat-option [value]="t.id">{{ t.label }}</mat-option>
+              }
+            </mat-select>
+            <mat-icon matPrefix>palette</mat-icon>
+          </mat-form-field>
+        </div>
+        <mat-slide-toggle [checked]="ctx.model.handwritten" (change)="handwritten($event.checked)">
+          Handgezeichnet
+        </mat-slide-toggle>
+      </section>
+
+      <nav class="sections" role="tablist">
+        @for (s of sections; track s.selector) {
+          <button
+            role="tab"
+            class="sec"
+            [class.active]="activeSection() === s.selector"
+            [attr.aria-selected]="activeSection() === s.selector"
+            (click)="activeSection.set(s.selector)"
+          >
+            <mat-icon>{{ s.icon }}</mat-icon>
+            <span>{{ s.label }}</span>
+            @if (sectionHasValues(s.selector)) {
+              <i class="dot"></i>
+            }
+          </button>
+        }
+      </nav>
+
+      <section class="group fields">
+        @for (key of section().fields; track key) {
+          <ng-container
+            *ngTemplateOutlet="field; context: { $implicit: key, props: globalProps() }"
+          />
+        }
+      </section>
+
+      @if (hasGlobalValues()) {
+        <button
+          mat-stroked-button
+          class="reset-all"
+          (click)="change.emit({ type: 'global-reset' })"
+        >
+          <mat-icon>format_color_reset</mat-icon>
+          Alle Diagramm-Styles entfernen
+        </button>
+      }
+    }
+
+    <!-- ============================ LINK ============================ -->
+    @case ('link') {
+      @let ls = linkStyle();
+      <section class="group fields">
+        <pe-color-field
+          label="Linienfarbe"
+          [value]="ls.color"
+          (valueChange)="emitLink({ color: $event })"
+        />
+
+        <div class="field">
+          <span class="label">Linienart</span>
+          <mat-button-toggle-group
+            [value]="ls.style ?? 'plain'"
+            (change)="emitLink({ style: $event.value === 'plain' ? undefined : $event.value })"
+            hideSingleSelectionIndicator
+          >
+            <mat-button-toggle value="plain" matTooltip="Durchgezogen"
+              ><span class="ls solid"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="dashed" matTooltip="Gestrichelt"
+              ><span class="ls dashed"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="dotted" matTooltip="Gepunktet"
+              ><span class="ls dotted"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="bold" matTooltip="Fett"
+              ><span class="ls bold"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="hidden" matTooltip="Unsichtbar"
+              ><mat-icon>visibility_off</mat-icon></mat-button-toggle
+            >
+          </mat-button-toggle-group>
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <span class="label">Linienstärke</span>
+            <span class="val">{{ ls.thickness ?? 'Standard' }}</span>
+          </div>
+          <mat-slider min="0" max="8" step="1" discrete>
+            <input
+              matSliderThumb
+              [value]="ls.thickness ?? 0"
+              (input)="emitLink({ thickness: +$any($event.target).value || undefined })"
+            />
+          </mat-slider>
+        </div>
+      </section>
+      @if ($any(context()).sequence) {
+        <p class="note">
+          <mat-icon>info</mat-icon>
+          In Sequenzdiagrammen unterstützt PlantUML für Nachrichten vor allem die Farbe.
+        </p>
+      }
+      @if (ls.color || ls.style || ls.thickness) {
+        <button
+          mat-stroked-button
+          class="reset-all"
+          (click)="change.emit({ type: 'link', style: {} })"
+        >
+          <mat-icon>format_color_reset</mat-icon>
+          Style der Verbindung entfernen
+        </button>
+      }
+    }
+
+    <!-- ============================ ELEMENT ============================ -->
+    @default {
+      <section class="group fields">
+        @for (key of elementFields; track key) {
+          <ng-container
+            *ngTemplateOutlet="field; context: { $implicit: key, props: elementProps() }"
+          />
+        }
+      </section>
+      @if (hasElementValues()) {
+        <button
+          mat-stroked-button
+          class="reset-all"
+          (click)="change.emit({ type: 'element-reset' })"
+        >
+          <mat-icon>format_color_reset</mat-icon>
+          Styles dieses Elements entfernen
+        </button>
+      }
+    }
+  }
+</div>
+
+<!-- A single abstract control per style property -->
+<ng-template #field let-key let-props="props">
+  @let value = prop(props, key);
+  @if (isColor(key)) {
+    <pe-color-field
+      [label]="label(key)"
+      [value]="asString(value)"
+      (valueChange)="emitProp(key, $event)"
+    />
+  } @else {
+    @switch (key) {
+      @case ('FontName') {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full">
+          <mat-label>{{ label(key) }}</mat-label>
+          <mat-select [value]="value ?? null" (valueChange)="emitProp(key, $event)">
+            <mat-option [value]="null">Standard</mat-option>
+            @for (f of fonts; track f) {
+              <mat-option [value]="f"
+                ><span [style.font-family]="f">{{ f }}</span></mat-option
+              >
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+      @case ('FontStyle') {
+        <div class="field">
+          <span class="label">{{ label(key) }}</span>
+          <mat-button-toggle-group
+            [value]="value ?? 'plain'"
+            (change)="emitProp(key, $event.value === 'plain' ? undefined : $event.value)"
+            hideSingleSelectionIndicator
+          >
+            <mat-button-toggle value="plain" matTooltip="Normal"
+              ><mat-icon>format_clear</mat-icon></mat-button-toggle
+            >
+            <mat-button-toggle value="bold" matTooltip="Fett"
+              ><mat-icon>format_bold</mat-icon></mat-button-toggle
+            >
+            <mat-button-toggle value="italic" matTooltip="Kursiv"
+              ><mat-icon>format_italic</mat-icon></mat-button-toggle
+            >
+            <mat-button-toggle value="bold italic" matTooltip="Fett & kursiv"
+              ><b><i>BI</i></b></mat-button-toggle
+            >
+          </mat-button-toggle-group>
+        </div>
+      }
+      @case ('LineStyle') {
+        <div class="field">
+          <span class="label">{{ label(key) }}</span>
+          <mat-button-toggle-group
+            [value]="value ?? '0'"
+            (change)="emitProp(key, $event.value === '0' ? undefined : $event.value)"
+            hideSingleSelectionIndicator
+          >
+            <mat-button-toggle value="0" matTooltip="Durchgezogen"
+              ><span class="ls solid"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="10-6" matTooltip="Lang gestrichelt"
+              ><span class="ls dashed-long"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="5" matTooltip="Gestrichelt"
+              ><span class="ls dashed"></span
+            ></mat-button-toggle>
+            <mat-button-toggle value="1-4" matTooltip="Gepunktet"
+              ><span class="ls dotted"></span
+            ></mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+      }
+      @case ('HorizontalAlignment') {
+        <div class="field">
+          <span class="label">{{ label(key) }}</span>
+          <mat-button-toggle-group
+            [value]="value ?? null"
+            (change)="emitProp(key, $event.value)"
+            hideSingleSelectionIndicator
+          >
+            <mat-button-toggle value="left" matTooltip="Links"
+              ><mat-icon>format_align_left</mat-icon></mat-button-toggle
+            >
+            <mat-button-toggle value="center" matTooltip="Zentriert"
+              ><mat-icon>format_align_center</mat-icon></mat-button-toggle
+            >
+            <mat-button-toggle value="right" matTooltip="Rechts"
+              ><mat-icon>format_align_right</mat-icon></mat-button-toggle
+            >
+          </mat-button-toggle-group>
+        </div>
+      }
+      @default {
+        @let r = sliderRange(key);
+        <div class="field">
+          <div class="label-row">
+            <span class="label">{{ label(key) }}</span>
+            <span class="val">
+              @if (value !== undefined) {
+                {{ value }}{{ unit(key) }}
+                <button
+                  mat-icon-button
+                  class="mini"
+                  (click)="emitProp(key, undefined)"
+                  matTooltip="Zurücksetzen"
+                  aria-label="Zurücksetzen"
+                >
+                  <mat-icon>restart_alt</mat-icon>
+                </button>
+              } @else {
+                Standard
+              }
+            </span>
+          </div>
+          <mat-slider [min]="r.min" [max]="r.max" [step]="r.step" discrete>
+            <input
+              matSliderThumb
+              [value]="asNumber(value) ?? r.def"
+              (input)="emitProp(key, +$any($event.target).value)"
+            />
+          </mat-slider>
+        </div>
+      }
+    }
+  }
+</ng-template>

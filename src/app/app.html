@@ -1,0 +1,346 @@
+<mat-sidenav-container class="shell" autosize>
+  <mat-sidenav
+    class="sidebar"
+    [mode]="wideSidebar() ? 'side' : 'over'"
+    [opened]="sidebarOpen()"
+    (openedChange)="sidebarOpen.set($event)"
+    [autoFocus]="false"
+  >
+    <pe-diagram-list
+      [diagrams]="store.diagrams()"
+      [activeId]="currentId()"
+      [usageKb]="store.usageBytes() / 1024"
+      (action)="onDiagramAction($event)"
+      (create)="newMenuTrigger.openMenu()"
+      (closed)="toggleSidebar()"
+    />
+  </mat-sidenav>
+
+  <mat-sidenav-content class="main">
+    <!-- ======================= Top bar ======================= -->
+    <header class="topbar">
+      <button
+        mat-icon-button
+        (click)="toggleSidebar()"
+        matTooltip="Diagramme (Strg+B)"
+        aria-label="Seitenleiste umschalten"
+      >
+        <mat-icon>{{ sidebarOpen() ? 'left_panel_close' : 'left_panel_open' }}</mat-icon>
+      </button>
+
+      <div class="doc">
+        <button class="doc-name" (click)="rename()" matTooltip="Umbenennen">
+          <span class="name">{{ name() }}</span>
+          @if (dirty()) {
+            <span class="dirty" aria-label="ungespeichert">●</span>
+          }
+        </button>
+        <div class="doc-meta">
+          <span class="type">{{ diagramTypeLabel() }}</span>
+          <span
+            class="status"
+            [class.ok]="!error() && svg()"
+            [class.err]="!!shownError()"
+            [class.busy]="rendering()"
+          >
+            @if (engine.state() === 'loading') {
+              <mat-icon>hourglass_top</mat-icon> Engine lädt
+            } @else if (errorPending()) {
+              <mat-icon>edit_note</mat-icon> Bearbeitung …
+            } @else if (shownError(); as err) {
+              <button
+                class="status-btn"
+                (click)="jumpToError()"
+                matTooltip="Zur fehlerhaften Zeile springen"
+              >
+                <mat-icon class="filled-icon">error</mat-icon>
+                Fehler{{ err.line ? ' · Z. ' + err.line : '' }}
+              </button>
+            } @else if (svg()) {
+              <mat-icon class="filled-icon">check_circle</mat-icon> Gültig
+            }
+          </span>
+        </div>
+      </div>
+
+      <span class="spacer"></span>
+
+      <div class="actions">
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="newMenu"
+          #newMenuTrigger="matMenuTrigger"
+          matTooltip="Neues Diagramm"
+          aria-label="Neues Diagramm"
+        >
+          <mat-icon>add_circle</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="hide-xs"
+          (click)="openGlobalStyle()"
+          matTooltip="Diagramm-Style"
+          aria-label="Diagramm-Style"
+        >
+          <mat-icon>palette</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="exportMenu"
+          [disabled]="!svg()"
+          matTooltip="Exportieren"
+          aria-label="Exportieren"
+        >
+          <mat-icon>ios_share</mat-icon>
+        </button>
+        <button mat-icon-button [matMenuTriggerFor]="moreMenu" matTooltip="Mehr" aria-label="Mehr">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <button
+          mat-flat-button
+          class="save"
+          (click)="save()"
+          matTooltip="Im Browser speichern (Strg+S)"
+        >
+          <mat-icon>{{ dirty() ? 'save' : 'cloud_done' }}</mat-icon>
+          <span class="hide-xs">{{ currentId() ? 'Speichern' : 'Speichern …' }}</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================= Workspace ======================= -->
+    <div class="workspace" [class.with-style]="!!styleContext()" [class.dragging]="dragging()">
+      <section
+        class="pane editor-pane"
+        [class.mobile-hidden]="mobilePane() !== 'editor'"
+        aria-label="Editor"
+      >
+        <div class="pane-bar">
+          <mat-icon class="pane-icon">code</mat-icon>
+          <span class="pane-title">PlantUML</span>
+          <span class="spacer"></span>
+          <button
+            mat-icon-button
+            (click)="editor.triggerCompletion()"
+            matTooltip="Vorschläge (Strg+Leertaste)"
+            aria-label="Vorschläge anzeigen"
+          >
+            <mat-icon>auto_awesome</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            (click)="editor.undo()"
+            matTooltip="Rückgängig (Strg+Z)"
+            aria-label="Rückgängig"
+          >
+            <mat-icon>undo</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            (click)="editor.redo()"
+            matTooltip="Wiederholen (Strg+Y)"
+            aria-label="Wiederholen"
+          >
+            <mat-icon>redo</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            [class.on]="wrap()"
+            (click)="toggleWrap()"
+            matTooltip="Zeilenumbruch"
+            aria-label="Zeilenumbruch umschalten"
+          >
+            <mat-icon>wrap_text</mat-icon>
+          </button>
+        </div>
+        <pe-code-editor
+          (cursorLine)="cursorLine.set($event)"
+          #editor
+          class="editor"
+          [(value)]="source"
+          [error]="shownError()"
+          [wrap]="wrap()"
+        />
+      </section>
+
+      <div
+        class="gutter"
+        role="separator"
+        tabindex="0"
+        [attr.aria-orientation]="layout() === 'vertical' ? 'horizontal' : 'vertical'"
+        aria-label="Größe der Bereiche ändern"
+        (pointerdown)="startResize($event)"
+        (dblclick)="resetSplit()"
+        (keydown)="nudgeSplit($event)"
+      >
+        <span class="grip"></span>
+      </div>
+
+      <section
+        class="pane preview-pane"
+        [class.mobile-hidden]="mobilePane() !== 'preview'"
+        aria-label="Vorschau"
+      >
+        <pe-diagram-preview
+          [svg]="svg()"
+          [error]="shownError()"
+          [rendering]="rendering()"
+          [engineState]="engine.state()"
+          [lastDuration]="lastDuration()"
+          (pointer)="onPreviewPointer($event)"
+          (jumpToError)="jumpToError()"
+        />
+      </section>
+
+      @if (styleContext(); as ctx) {
+        <aside class="style-dock" aria-label="Style anpassen">
+          <pe-style-panel
+            [context]="ctx"
+            (change)="onStyleChange($event)"
+            (close)="closeStyle()"
+            (jump)="jumpToLine($event)"
+          />
+        </aside>
+      }
+    </div>
+
+    <!-- ======================= Mobile tabs ======================= -->
+    @if (layout() === 'tabs') {
+      <nav class="bottom-nav" aria-label="Ansicht">
+        <button [class.active]="mobilePane() === 'editor'" (click)="mobilePane.set('editor')">
+          <mat-icon>code</mat-icon>
+          <span>Code</span>
+          @if (shownError()) {
+            <i class="badge err"></i>
+          }
+        </button>
+        <button [class.active]="mobilePane() === 'preview'" (click)="mobilePane.set('preview')">
+          <mat-icon>schema</mat-icon>
+          <span>Vorschau</span>
+        </button>
+        <button (click)="openGlobalStyle()">
+          <mat-icon>palette</mat-icon>
+          <span>Style</span>
+        </button>
+      </nav>
+    }
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<!-- ======================= Menus ======================= -->
+<mat-menu #newMenu="matMenu">
+  <div class="menu-caption">Neues Diagramm aus Vorlage</div>
+  @for (t of templates; track t.id) {
+    <button mat-menu-item (click)="loadTemplate(t)">
+      <mat-icon>{{ t.icon }}</mat-icon>
+      {{ t.label }}
+    </button>
+  }
+  <mat-divider />
+  <button mat-menu-item (click)="save(true)">
+    <mat-icon>library_add</mat-icon>
+    Speichern unter … <span class="kbd">⇧ Strg S</span>
+  </button>
+</mat-menu>
+
+<mat-menu #exportMenu="matMenu">
+  <div class="menu-caption">Bild herunterladen</div>
+  <button mat-menu-item (click)="exportSvg()">
+    <mat-icon>image</mat-icon>
+    SVG (Vektor)
+  </button>
+  <button mat-menu-item (click)="exportPng(1)"><mat-icon>photo</mat-icon>PNG · 1×</button>
+  <button mat-menu-item (click)="exportPng(2)">
+    <mat-icon>photo</mat-icon>PNG · 2× <span class="kbd">⇧ Strg E</span>
+  </button>
+  <button mat-menu-item (click)="exportPng(4)">
+    <mat-icon>high_quality</mat-icon>PNG · 4× (Druck)
+  </button>
+  <div class="menu-check" (click)="$event.stopPropagation()">
+    <mat-checkbox [checked]="pngTransparent()" (change)="pngTransparent.set($event.checked)"
+      >PNG mit transparentem Hintergrund</mat-checkbox
+    >
+  </div>
+  <mat-divider />
+  <div class="menu-caption">Zwischenablage</div>
+  <button mat-menu-item (click)="copyPng()"><mat-icon>content_paste</mat-icon>PNG kopieren</button>
+  <button mat-menu-item (click)="copySvg()">
+    <mat-icon>data_object</mat-icon>SVG-Code kopieren
+  </button>
+  <mat-divider />
+  <button mat-menu-item (click)="exportSource()">
+    <mat-icon>description</mat-icon>Quelltext (.puml)
+  </button>
+</mat-menu>
+
+<mat-menu #moreMenu="matMenu">
+  <button mat-menu-item (click)="cycleTheme()">
+    <mat-icon>{{ themeIcon() }}</mat-icon>
+    Farbschema: {{ themeLabel() }}
+  </button>
+  <button mat-menu-item (click)="openGlobalStyle()">
+    <mat-icon>palette</mat-icon>
+    Diagramm-Style anpassen
+  </button>
+  <button mat-menu-item (click)="rename()">
+    <mat-icon>edit</mat-icon>
+    Umbenennen
+  </button>
+  <mat-divider />
+  <a mat-menu-item href="https://plantuml.com/de/" target="_blank" rel="noopener">
+    <mat-icon>menu_book</mat-icon>
+    PlantUML-Dokumentation
+  </a>
+</mat-menu>
+
+<!-- Context menu anchored at the click position -->
+<div
+  class="ctx-anchor"
+  [style.left.px]="menuPos().x"
+  [style.top.px]="menuPos().y"
+  [matMenuTriggerFor]="ctxMenu"
+  #ctxTrigger="matMenuTrigger"
+></div>
+<mat-menu #ctxMenu="matMenu" class="pe-context-menu">
+  @if (menuTarget(); as t) {
+    <div class="menu-header">
+      <span class="kind">{{ kindLabels[t.kind] }}</span>
+      <span class="name">{{ t.label }}</span>
+    </div>
+    <button mat-menu-item [disabled]="!t.line" (click)="jumpToLine(t.line)">
+      <mat-icon>code</mat-icon>
+      Zum Editor springen
+      @if (t.line) {
+        <span class="kbd">Z. {{ t.line }}</span>
+      }
+    </button>
+    <button mat-menu-item [disabled]="!canStyle(t)" (click)="openStyleFor(t)">
+      <mat-icon>brush</mat-icon>
+      Style anpassen
+    </button>
+    <mat-divider />
+    <button mat-menu-item (click)="openGlobalStyle()">
+      <mat-icon>palette</mat-icon>
+      Diagramm-Style anpassen
+    </button>
+  } @else {
+    <div class="menu-header">
+      <span class="kind">Diagramm</span>
+      <span class="name">{{ name() }}</span>
+    </div>
+    <button mat-menu-item (click)="openGlobalStyle()">
+      <mat-icon>palette</mat-icon>
+      Diagramm-Style anpassen
+    </button>
+    <mat-divider />
+    <button mat-menu-item (click)="exportPng(2)">
+      <mat-icon>photo</mat-icon>Als PNG exportieren
+    </button>
+    <button mat-menu-item (click)="exportSvg()">
+      <mat-icon>image</mat-icon>Als SVG exportieren
+    </button>
+    <button mat-menu-item (click)="copyPng()">
+      <mat-icon>content_paste</mat-icon>PNG kopieren
+    </button>
+  }
+</mat-menu>

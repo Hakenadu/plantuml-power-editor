@@ -1,0 +1,115 @@
+<div
+  #viewport
+  class="viewport"
+  tabindex="0"
+  role="application"
+  aria-label="Diagramm-Vorschau. Klick auf ein Element öffnet das Kontextmenü. Strg + Mausrad zoomt."
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (contextmenu)="onContextMenu($event)"
+  (wheel)="onWheel($event)"
+  (dblclick)="onDoubleClick($event)"
+  (keydown)="onKey($event)"
+>
+  <div class="paper" [style.transform]="transform()" [class.hidden]="!svg()">
+    <div #stage class="stage"></div>
+  </div>
+
+  @if (!svg()) {
+    <div class="empty">
+      @if (engineState() === 'loading' || engineState() === 'idle') {
+        <div class="skeleton">
+          <div class="bar w60"></div>
+          <div class="row">
+            <div class="box"></div>
+            <div class="line"></div>
+            <div class="box"></div>
+          </div>
+          <div class="bar w40"></div>
+        </div>
+        <p>PlantUML-Engine wird geladen …</p>
+      } @else if (engineState() === 'failed') {
+        <mat-icon class="big">cloud_off</mat-icon>
+        <p>Die PlantUML-Engine konnte nicht geladen werden.</p>
+      } @else if (error()) {
+        <mat-icon class="big err">report</mat-icon>
+        <p>Noch keine gültige Darstellung – bitte Fehler im Editor beheben.</p>
+      } @else {
+        <mat-icon class="big">draw</mat-icon>
+        <p>Beginne im Editor zu tippen …</p>
+      }
+    </div>
+  }
+
+  @if (rendering()) {
+    <mat-progress-bar class="progress overlay-ui" mode="indeterminate" />
+  }
+
+  @if (error(); as err) {
+    <div class="error-banner overlay-ui" role="alert">
+      <mat-icon class="filled-icon">error</mat-icon>
+      <div class="msg">
+        <strong>
+          Syntaxfehler
+          @if (err.line) {
+            in Zeile {{ err.line }}
+          }
+        </strong>
+        <span class="detail">{{ err.message }}</span>
+        @if (svg()) {
+          <span class="hint">Angezeigt wird der letzte funktionierende Stand.</span>
+        }
+      </div>
+      @if (err.line) {
+        <button mat-button class="jump" (click)="jumpToError.emit()">
+          <mat-icon>arrow_back</mat-icon>
+          Zur Zeile
+        </button>
+      }
+    </div>
+  }
+
+  <div class="zoom overlay-ui" role="toolbar" aria-label="Zoom">
+    <button
+      mat-icon-button
+      (click)="zoomBy(1 / 1.25)"
+      matTooltip="Verkleinern (−)"
+      aria-label="Verkleinern"
+    >
+      <mat-icon>remove</mat-icon>
+    </button>
+    <button
+      class="pct"
+      (click)="actualSize()"
+      matTooltip="Originalgröße (1)"
+      aria-label="Originalgröße"
+    >
+      {{ view().scale * 100 | number: '1.0-0' }}%
+    </button>
+    <button
+      mat-icon-button
+      (click)="zoomBy(1.25)"
+      matTooltip="Vergrößern (+)"
+      aria-label="Vergrößern"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+    <span class="sep"></span>
+    <button
+      mat-icon-button
+      (click)="fit()"
+      matTooltip="Einpassen (0 / Doppelklick)"
+      aria-label="Einpassen"
+    >
+      <mat-icon>fit_screen</mat-icon>
+    </button>
+  </div>
+
+  @if (lastDuration() !== null && svg()) {
+    <div class="timing overlay-ui" aria-hidden="true">
+      {{ lastDuration() | number: '1.0-0' }} ms
+    </div>
+  }
+</div>
