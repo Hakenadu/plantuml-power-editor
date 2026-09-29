@@ -1,28 +1,209 @@
 <!doctype html>
-<html lang="de">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8" />
-    <title>PlantUML Power Editor</title>
+    <!-- Static defaults (English = x-default). SeoService/App update title, description,
+         Open Graph and canonical at runtime to match the UI language. -->
+    <title>PlantUML Editor online – free, with live preview | PlantUML Power Editor</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
-      content="Moderner PlantUML Editor mit Live-Rendering, Autovervollständigung und Style-Editor"
+      content="Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up – everything stays on your device."
     />
+    <meta name="application-name" content="PlantUML Power Editor" />
+    <meta name="author" content="mseiche" />
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#1b1b21" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="canonical" href="https://plantuml-editor.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/" />
+    <link rel="alternate" hreflang="en" href="https://plantuml-editor.com/?lang=en" />
+    <link rel="alternate" hreflang="de" href="https://plantuml-editor.com/?lang=de" />
+
+    <!-- Icons & PWA -->
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
-      rel="stylesheet"
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="manifest" href="site.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="PlantUML Editor" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PlantUML Power Editor" />
+    <meta
+      property="og:title"
+      content="PlantUML Editor online – free, with live preview | PlantUML Power Editor"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&display=block"
-      rel="stylesheet"
+    <meta
+      property="og:description"
+      content="Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up – everything stays on your device."
     />
+    <meta property="og:url" content="https://plantuml-editor.com/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    <meta property="og:image" content="https://plantuml-editor.com/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="PlantUML Editor: code editor with syntax highlighting next to a live-rendered UML sequence and class diagram"
+    />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="PlantUML Editor online – free, with live preview | PlantUML Power Editor"
+    />
+    <meta
+      name="twitter:description"
+      content="Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up – everything stays on your device."
+    />
+    <meta name="twitter:image" content="https://plantuml-editor.com/og-image.jpg" />
+    <meta
+      name="twitter:image:alt"
+      content="PlantUML Editor: code editor with syntax highlighting next to a live-rendered UML sequence and class diagram"
+    />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://plantuml-editor.com/#website",
+            "url": "https://plantuml-editor.com/",
+            "name": "PlantUML Power Editor",
+            "alternateName": ["PlantUML Editor", "plantuml-editor.com"],
+            "inLanguage": ["en", "de"]
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://plantuml-editor.com/#app",
+            "name": "PlantUML Power Editor",
+            "alternateName": "PlantUML Editor",
+            "url": "https://plantuml-editor.com/",
+            "description": "Free online PlantUML editor with live preview, syntax highlighting, context-aware autocompletion, click-to-style diagram editing and PNG/SVG export. Runs entirely in the browser; diagrams are stored locally.",
+            "applicationCategory": "DeveloperApplication",
+            "applicationSubCategory": "UML diagram editor",
+            "operatingSystem": "Any (web browser)",
+            "browserRequirements": "Requires JavaScript and a modern browser.",
+            "isAccessibleForFree": true,
+            "inLanguage": ["en", "de"],
+            "image": "https://plantuml-editor.com/og-image.jpg",
+            "screenshot": "https://plantuml-editor.com/og-image.jpg",
+            "author": { "@type": "Person", "name": "mseiche" },
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+            "featureList": [
+              "Live rendering of PlantUML diagrams in the browser",
+              "Syntax highlighting and context-aware autocompletion",
+              "Errors shown at the affected line",
+              "Click a diagram element to jump to its source or change its style",
+              "Themes, hand-drawn look and custom saved themes",
+              "Export as PNG or SVG, copy to clipboard",
+              "Diagrams saved in the browser's local storage",
+              "Sequence, class, activity, use case, component, state, deployment, mind map, Gantt and more"
+            ],
+            "isPartOf": { "@id": "https://plantuml-editor.com/#website" }
+          }
+        ]
+      }
+    </script>
+
+    <!-- Styles for the static content below (shown until Angular has started). -->
+    <style>
+      .pe-static {
+        box-sizing: border-box;
+        min-height: 100dvh;
+        display: grid;
+        place-content: center;
+        gap: 12px;
+        padding: 32px 16px;
+        max-width: 640px;
+        margin: 0 auto;
+        font-family: Inter, system-ui, sans-serif;
+        line-height: 1.5;
+        color: #1b1b21;
+      }
+      .pe-static h1 {
+        margin: 0;
+        font-size: 2rem;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .pe-static h1 img {
+        border-radius: 10px;
+      }
+      .pe-static p,
+      .pe-static ul {
+        margin: 0;
+        color: #4a4a57;
+      }
+      .pe-static ul {
+        padding-left: 1.2em;
+      }
+      .pe-static a {
+        color: #6a4ce6;
+      }
+      @media (prefers-color-scheme: dark) {
+        .pe-static {
+          color: #ececf2;
+        }
+        .pe-static p,
+        .pe-static ul {
+          color: #b9b9c6;
+        }
+        .pe-static a {
+          color: #b3a4ff;
+        }
+      }
+    </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root>
+      <!-- Crawlable description; Angular replaces it once the editor has started. -->
+      <main class="pe-static">
+        <h1>
+          <img src="favicon.svg" width="40" height="40" alt="" />
+          PlantUML Editor
+        </h1>
+        <p>
+          Free online PlantUML editor: write UML diagrams as text in your browser and see them
+          render live – with syntax highlighting, autocompletion and click-to-style editing.
+        </p>
+        <ul>
+          <li>Live preview that keeps the last valid diagram while you type</li>
+          <li>Errors highlighted at the affected line</li>
+          <li>Context-aware autocompletion for sequence, class, activity, state and more</li>
+          <li>Click an element to jump to its source or change colors, fonts and lines</li>
+          <li>PlantUML themes, hand-drawn look and your own saved themes</li>
+          <li>Export as PNG or SVG; diagrams are saved locally in your browser</li>
+        </ul>
+        <p lang="de">
+          Kostenloser PlantUML-Editor im Browser mit Live-Vorschau, Autovervollständigung und
+          Export als PNG oder SVG. <a href="/?lang=de" hreflang="de">Auf Deutsch öffnen</a> ·
+          <a href="/?lang=en" hreflang="en" lang="en">Open in English</a>
+        </p>
+        <p>
+          No cookies, no tracking, no third-party requests – your diagrams stay in your browser.
+          <a href="privacy.html">Privacy policy</a> ·
+          <a href="datenschutz.html" hreflang="de" lang="de">Datenschutzerklärung</a>
+        </p>
+        <noscript>
+          <p><strong>The editor needs JavaScript. Please enable it to continue.</strong></p>
+        </noscript>
+      </main>
+    </app-root>
   </body>
 </html>

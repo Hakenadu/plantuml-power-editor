@@ -88,6 +88,40 @@ Neue Sprache hinzufügen:
 2. In `src/app/i18n/languages.ts` einen Eintrag in `LANGUAGES` ergänzen – bei Bedarf mit
    `ngLocale` für Angulars Zahlen-/Datumsformate.
 
+## SEO & Deployment
+
+Die App wird unter **https://plantuml-editor.com** bereitgestellt (Origin in `core/seo.service.ts`,
+`index.html`, `public/robots.txt`, `public/sitemap.xml`).
+
+- `index.html` enthält Title, Description, Canonical, `hreflang` (de/en/x-default), Open Graph,
+  Twitter Card, JSON-LD (`WebSite` + `WebApplication`) sowie crawlbaren statischen Inhalt in
+  `<app-root>`, der beim Start der App ersetzt wird.
+- Sprachversionen sind über `?lang=de` / `?lang=en` erreichbar; `SeoService` aktualisiert Title,
+  Description, Canonical, `og:*` und `twitter:*` passend zur UI-Sprache (Texte unter `seo` in den
+  Wörterbüchern).
+- `public/`: `robots.txt`, `sitemap.xml`, `site.webmanifest`, `llms.txt`, Icons (ICO/SVG/PNG,
+  Apple Touch, maskable) und Social Cards (`og-image.jpg`, `og-image-de.jpg`, 1200×630).
+- Nach dem Deployment: Domain in der Google Search Console und den Bing Webmaster Tools
+  verifizieren und die Sitemap einreichen; Social Cards z. B. mit dem LinkedIn Post Inspector
+  prüfen. Der Server sollte HTTPS erzwingen, `www` auf die Apex-Domain umleiten und gehashte
+  Assets (`*.js`, `*.css`) lange cachen, `index.html` dagegen nicht.
+
+## Datenschutz & Fonts
+
+Die App lädt nichts von fremden Servern: Inter und JetBrains Mono kommen aus
+`@fontsource-variable/*`, die Icons aus einem Subset von _Material Symbols Rounded_
+(`src/fonts/material-symbols-rounded.woff2`, ~28 KB statt ~5 MB), eingebunden in `src/fonts.scss`.
+Die Datenschutzerklärung liegt statisch unter `public/privacy.html` bzw. `public/datenschutz.html`
+(im Menü _Mehr → Datenschutz_).
+
+Das Icon-Subset enthält alle Icon-Namen, die im Quelltext unter `src/` vorkommen. **Nach dem Hinzufügen
+neuer Icons** neu erzeugen:
+
+```bash
+pip install fonttools brotli   # einmalig
+npm run icons
+```
+
 ## Entwicklung
 
 ```bash

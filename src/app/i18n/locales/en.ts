@@ -14,6 +14,16 @@ const en: Translations = {
 
   keys: { ctrl: 'Ctrl', shift: 'Shift' },
 
+  seo: {
+    title: 'PlantUML Editor online – free, with live preview | PlantUML Power Editor',
+    description:
+      'Free online PlantUML editor: write UML diagrams in your browser, see them render live, style them by clicking and export PNG or SVG. No sign-up – everything stays on your device.',
+    heading: 'PlantUML Editor',
+    image: 'og-image.jpg',
+    imageAlt:
+      'PlantUML Editor: code editor with syntax highlighting next to a live-rendered UML sequence and class diagram',
+  },
+
   app: {
     untitled: 'Untitled diagram',
     copyName: (name) => `${name} (copy)`,
@@ -66,6 +76,8 @@ const en: Translations = {
     editDiagramStyle: 'Adjust diagram style',
     docs: 'PlantUML documentation',
     docsUrl: 'https://plantuml.com/',
+    privacy: 'Privacy',
+    privacyUrl: 'privacy.html',
     jumpToEditor: 'Jump to editor',
     lineShort: (line) => `L. ${line}`,
     adjustStyle: 'Adjust style',

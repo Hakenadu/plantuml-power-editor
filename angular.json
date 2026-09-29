@@ -34,7 +34,7 @@
                 "output": "/"
               }
             ],
-            "styles": ["src/styles.scss"]
+            "styles": ["src/fonts.scss", "src/styles.scss"]
           },
           "configurations": {
             "production": {

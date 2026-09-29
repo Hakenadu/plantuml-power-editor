@@ -10,12 +10,15 @@ export const LANGUAGES = [
     code: 'de',
     /** Native name, shown in the language menu regardless of the current UI language. */
     label: 'Deutsch',
+    /** Open Graph locale (`og:locale`). */
+    ogLocale: 'de_DE',
     load: () => import('./locales/de').then((m) => m.default),
     ngLocale: () => import('@angular/common/locales/de').then((m) => m.default),
   },
   {
     code: 'en',
     label: 'English',
+    ogLocale: 'en_US',
     load: () => import('./locales/en').then((m) => m.default),
     // Angular ships English locale data by default.
     ngLocale: undefined,
@@ -25,6 +28,7 @@ export const LANGUAGES = [
 interface LanguageDefinition {
   code: string;
   label: string;
+  ogLocale: string;
   load: () => Promise<Translations>;
   ngLocale: (() => Promise<unknown>) | undefined;
 }

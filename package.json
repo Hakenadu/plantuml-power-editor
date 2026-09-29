@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "icons": "python scripts/subset-icons.py"
   },
   "private": true,
   "packageManager": "npm@10.8.2",
@@ -25,6 +26,8 @@
     "@codemirror/search": "^6.7.2",
     "@codemirror/state": "^6.7.6",
     "@codemirror/view": "^6.43.13",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@lezer/highlight": "^1.2.5",
     "@plantuml/core": "^1.2026.8",
     "codemirror": "^6.0.2",
@@ -36,6 +39,7 @@
     "@angular/cli": "^22.2.0",
     "@angular/compiler-cli": "^22.2.0",
     "jsdom": "^30.0.0",
+    "material-symbols": "^0.47.5",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^5.0.0"

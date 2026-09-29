@@ -56,6 +56,7 @@ import {
 } from './core/plantuml-styles';
 import { DiagramTemplate, TEMPLATE_DEFS } from './core/templates';
 import { I18nService } from './i18n/i18n.service';
+import { SeoService } from './core/seo.service';
 import { LanguagePreference } from './i18n/languages';
 
 type StyleTarget =
@@ -116,6 +117,10 @@ export class App {
   protected readonly i18n = inject(I18nService);
   /** Current UI dictionary (signal). */
   protected readonly t = this.i18n.t;
+  /** Language-dependent meta tags (instantiated for its side effects). */
+  protected readonly seo = inject(SeoService);
+  /** Source of the start template while the user has not touched it (search-engine view). */
+  private readonly initialSource = signal<string | null>(null);
 
   private readonly editor = viewChild(CodeEditorComponent);
   private readonly preview = viewChild(DiagramPreviewComponent);
@@ -233,7 +238,10 @@ export class App {
 
     effect(() => {
       const n = this.name();
-      document.title = `${this.dirty() ? '● ' : ''}${n} – PlantUML Power Editor`;
+      const untouched = !this.currentId() && this.source() === this.initialSource();
+      document.title = untouched
+        ? this.t().seo.title
+        : `${this.dirty() ? '● ' : ''}${n} – PlantUML Power Editor`;
     });
 
     inject(DestroyRef).onDestroy(() => {
@@ -561,6 +569,7 @@ export class App {
       this.savedSource.set(stored ? stored.source : null);
     } else {
       this.loadTemplate(this.templates()[0], false);
+      this.initialSource.set(this.source());
     }
   }
 

@@ -18,6 +18,18 @@ const de = {
 
   keys: { ctrl: 'Strg', shift: 'Umschalt' },
 
+  /** Texts for search engines and link previews (title, meta description, Open Graph). */
+  seo: {
+    title: 'PlantUML Editor online – kostenlos, mit Live-Vorschau | PlantUML Power Editor',
+    description:
+      'Kostenloser Online-PlantUML-Editor: UML-Diagramme im Browser schreiben, live rendern, per Klick stylen und als PNG oder SVG exportieren. Ohne Anmeldung – alles bleibt lokal.',
+    heading: 'PlantUML Editor',
+    /** Social card in `public/` (1200×630). */
+    image: 'og-image-de.jpg',
+    imageAlt:
+      'PlantUML Editor: Code-Editor mit Syntax-Highlighting neben einem live gerenderten UML-Sequenz- und Klassendiagramm',
+  },
+
   app: {
     untitled: 'Unbenanntes Diagramm',
     copyName: (name: string) => `${name} (Kopie)`,
@@ -70,6 +82,8 @@ const de = {
     editDiagramStyle: 'Diagramm-Style anpassen',
     docs: 'PlantUML-Dokumentation',
     docsUrl: 'https://plantuml.com/de/',
+    privacy: 'Datenschutz',
+    privacyUrl: 'datenschutz.html',
     jumpToEditor: 'Zum Editor springen',
     lineShort: (line: number) => `Z. ${line}`,
     adjustStyle: 'Style anpassen',

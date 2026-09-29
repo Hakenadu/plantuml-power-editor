@@ -1,0 +1,22 @@
+{
+  "name": "PlantUML Power Editor",
+  "short_name": "PlantUML Editor",
+  "description": "Free online PlantUML editor with live preview, autocompletion, click-to-style editing and PNG/SVG export.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#1b1b21",
+  "theme_color": "#1b1b21",
+  "lang": "en",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "og-image.jpg", "sizes": "1200x630", "type": "image/jpeg", "form_factor": "wide", "label": "PlantUML Editor with live preview" }
+  ]
+}

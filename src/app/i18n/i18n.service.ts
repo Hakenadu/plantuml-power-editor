@@ -32,6 +32,11 @@ export class I18nService {
   /** BCP 47 locale for Intl APIs and Angular pipes. */
   readonly locale = computed(() => this.lang());
   readonly systemLanguage = signal<LanguageCode>(detectSystemLanguage());
+  /**
+   * Language forced by the `?lang=` URL parameter (links for search engines / hreflang).
+   * It wins over the stored preference until the user picks a language in the menu.
+   */
+  readonly urlLanguage = signal<LanguageCode | null>(readUrlLanguage());
 
   /** Current dictionary. Only valid after `init()` (runs as an app initializer). */
   readonly t = computed(() => {
@@ -46,18 +51,25 @@ export class I18nService {
   constructor() {
     window.addEventListener('languagechange', () => {
       this.systemLanguage.set(detectSystemLanguage());
-      if (this.preference() === 'system') void this.activate(this.systemLanguage());
+      if (this.preference() === 'system' && !this.urlLanguage())
+        void this.activate(this.systemLanguage());
     });
   }
 
   /** Loads the preferred language; called once before the app renders. */
   init(): Promise<void> {
-    return this.activate(this.resolve(this.preference()));
+    return this.activate(this.urlLanguage() ?? this.resolve(this.preference()));
   }
 
   async setPreference(pref: LanguagePreference): Promise<void> {
     this.preference.set(pref);
     this.store.updatePrefs({ language: pref });
+    if (this.urlLanguage()) {
+      this.urlLanguage.set(null);
+      const url = new URL(location.href);
+      url.searchParams.delete('lang');
+      history.replaceState(history.state, '', url);
+    }
     await this.activate(this.resolve(pref));
   }
 
@@ -95,6 +107,11 @@ export class I18nService {
     const pref = this.store.prefs().language;
     return pref === 'system' || isLanguageCode(pref) ? pref : 'system';
   }
+}
+
+function readUrlLanguage(): LanguageCode | null {
+  const lang = new URLSearchParams(location.search).get('lang');
+  return isLanguageCode(lang) ? lang : null;
 }
 
 export function labelOf(code: LanguageCode): string {

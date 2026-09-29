@@ -1,0 +1,21 @@
+# PlantUML Power Editor
+
+> Free online PlantUML editor at https://plantuml-editor.com. Write UML diagrams as text in the browser and see them render live. Runs entirely client-side (PlantUML compiled to JavaScript); diagrams are stored in the browser's local storage and never uploaded.
+
+## Features
+
+- Live rendering; the last valid diagram stays visible while typing, errors are shown at the affected line
+- Syntax highlighting and context-aware autocompletion (sequence, class, activity, use case, component, state, deployment, object, mind map and more)
+- Click a rendered element to jump to its source line or to change its style (colors, fonts, borders, line style)
+- Diagram-wide styles: PlantUML themes, hand-drawn look, custom themes saved locally
+- Export as PNG (1×/2×/4×, optional transparency) or SVG, copy to clipboard, download .puml source
+- Sidebar with saved diagrams (search, rename, duplicate, delete with undo)
+- UI in English and German (`?lang=en`, `?lang=de`), light and dark mode
+
+## Links
+
+- [Editor (English)](https://plantuml-editor.com/?lang=en)
+- [Editor (Deutsch)](https://plantuml-editor.com/?lang=de)
+- [Privacy policy](https://plantuml-editor.com/privacy.html): no cookies, no tracking, no third-party requests; fonts and icons are self-hosted
+- [Source code](https://github.com/Hakenadu/plantuml-power-editor)
+- [PlantUML language reference](https://plantuml.com/)
