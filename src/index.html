@@ -119,8 +119,48 @@
       }
     </script>
 
-    <!-- Styles for the static content below (shown until Angular has started). -->
+    <!-- With JavaScript the static description is only hidden visually (it stays readable for
+         crawlers, link previews and screen readers); a logo appears if loading takes a while. -->
+    <script>
+      document.documentElement.classList.add('js');
+    </script>
+    <!-- Styles for the static content below (replaced once Angular has started). -->
     <style>
+      .pe-splash {
+        display: none;
+      }
+      .js .pe-splash {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        animation: pe-splash-in 0.3s ease-out 0.4s both;
+      }
+      .js .pe-splash img {
+        border-radius: 14px;
+        animation: pe-splash-pulse 1.6s ease-in-out 0.7s infinite;
+      }
+      @keyframes pe-splash-in {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes pe-splash-pulse {
+        50% {
+          opacity: 0.55;
+        }
+      }
+      .js .pe-static {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        min-height: 0;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
       .pe-static {
         box-sizing: border-box;
         min-height: 100dvh;
@@ -173,6 +213,9 @@
   <body>
     <app-root>
       <!-- Crawlable description; Angular replaces it once the editor has started. -->
+      <div class="pe-splash" aria-hidden="true">
+        <img src="favicon.svg" width="56" height="56" alt="" />
+      </div>
       <main class="pe-static">
         <h1>
           <img src="favicon.svg" width="40" height="40" alt="" />
