@@ -27,6 +27,10 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser 
     Verbindungen (Farbe, Linienart, Stärke).
   - Rechtsklick auf freie Diagrammfläche → _Diagramm-Style_: Theme, handgezeichneter Stil sowie Styles für
     Hintergrund, Schrift, Elemente, Pfeile, Notizen und Titel.
+  - **Eigene Themes**: Die aktuellen Diagramm-Styles lassen sich per Lesezeichen-Button neben der
+    Theme-Auswahl unter einem Namen im Local Storage ablegen. Sie erscheinen danach oben in der
+    Auswahl (Gruppe _Eigene Themes_, markiert mit Lesezeichen), lassen sich auf jedes Diagramm
+    anwenden und dort direkt löschen (mit Rückgängig).
 - **Persistenz im Local Storage** mit Hinweis beim Speichern, ausklappbare Seitenleiste mit allen
   gespeicherten Diagrammen (Vorschaubild, Suche, Umbenennen, Duplizieren, Löschen mit Rückgängig).
   Der aktuelle Arbeitsstand wird zusätzlich automatisch als Entwurf gesichert.

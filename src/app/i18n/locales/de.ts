@@ -95,6 +95,8 @@ const de = {
     copyUnsupported: 'Kopieren wird von diesem Browser nicht unterstützt.',
     svgCopied: 'SVG-Code in die Zwischenablage kopiert.',
     copyFailed: 'Kopieren nicht möglich.',
+    themeSaved: (name: string) => `Theme „${name}“ im Local Storage gespeichert.`,
+    themeDeleted: (name: string) => `Theme „${name}“ gelöscht.`,
   },
 
   preview: {
@@ -165,6 +167,14 @@ const de = {
     closeAria: 'Style-Panel schließen',
     theme: 'Theme',
     noTheme: '– Kein Theme –',
+    customThemes: 'Eigene Themes',
+    plantumlThemes: 'PlantUML-Themes',
+    saveTheme: 'Als eigenes Theme speichern',
+    saveThemeTitle: 'Eigenes Theme speichern',
+    themeSaved: 'Entspricht einem gespeicherten Theme',
+    defaultThemeName: 'Mein Theme',
+    deleteTheme: 'Theme löschen',
+    deleteThemeAria: (name: string) => `Theme „${name}“ löschen`,
     handwritten: 'Handgezeichnet',
     removeAllGlobal: 'Alle Diagramm-Styles entfernen',
     lineColor: 'Linienfarbe',

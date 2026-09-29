@@ -166,3 +166,39 @@ mat-icon {
     opacity: 0;
   }
 }
+
+/* Custom themes in the theme select (overlay, hence global). */
+.pe-theme-panel .custom-theme-option {
+  padding-right: 4px;
+
+  .mdc-list-item__primary-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  > .mat-icon {
+    color: var(--mat-sys-primary);
+  }
+
+  .ct-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ct-delete {
+    margin-right: 0;
+    color: var(--mat-sys-on-surface-variant);
+
+    .mat-icon {
+      margin-right: 0;
+    }
+
+    &:hover {
+      color: var(--mat-sys-error);
+    }
+  }
+}

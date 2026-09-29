@@ -207,3 +207,23 @@ mat-button-toggle-group {
     flex: none;
   }
 }
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  .full {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.trigger-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  vertical-align: -4px;
+  margin-right: 4px;
+  color: var(--mat-sys-primary);
+}

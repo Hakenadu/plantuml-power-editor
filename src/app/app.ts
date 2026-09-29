@@ -52,6 +52,7 @@ import {
   parseStyleModel,
   removeElementStereotype,
   stereotypeFor,
+  globalStyleKey,
 } from './core/plantuml-styles';
 import { DiagramTemplate, TEMPLATE_DEFS } from './core/templates';
 import { I18nService } from './i18n/i18n.service';
@@ -369,7 +370,18 @@ export class App {
     const t = this.styleTarget();
     if (!t) return null;
     const model = this.styleModel();
-    if (t.mode === 'global') return { mode: 'global', model, themes: this.engine.themes() };
+    if (t.mode === 'global') {
+      const current = globalStyleKey(model);
+      const custom = this.store.customThemes();
+      return {
+        mode: 'global',
+        model,
+        themes: this.engine.themes(),
+        customThemes: custom,
+        activeCustomTheme:
+          custom.find((ct) => globalStyleKey({ ...ct, theme: ct.base }) === current)?.id ?? null,
+      };
+    }
     const lines = this.source().split(/\r\n|\r|\n/);
     if (t.mode === 'link') {
       return {
@@ -459,6 +471,22 @@ export class App {
         src = applyStyleModel(src, model);
         break;
       }
+      case 'custom-theme': {
+        const theme = this.store.customThemes().find((ct) => ct.id === change.id);
+        if (!theme) return;
+        const model = parseStyleModel(src);
+        model.theme = theme.base;
+        model.handwritten = theme.handwritten;
+        model.global = structuredClone(theme.global);
+        src = applyStyleModel(src, model);
+        break;
+      }
+      case 'save-theme':
+        this.saveCustomTheme();
+        return;
+      case 'delete-theme':
+        this.deleteCustomTheme(change.id);
+        return;
       case 'handwritten': {
         const model = parseStyleModel(src);
         model.handwritten = change.value;
@@ -474,6 +502,48 @@ export class App {
       }
     }
     if (src !== this.source()) this.source.set(src);
+  }
+
+  /** Stores the current diagram-wide styles as a named custom theme. */
+  private saveCustomTheme(): void {
+    const tr = this.t().stylePanel;
+    this.dialog
+      .open(RenameDialogComponent, {
+        data: { name: tr.defaultThemeName, title: tr.saveThemeTitle, confirm: this.t().app.save },
+        width: '420px',
+        maxWidth: 'calc(100vw - 32px)',
+      })
+      .afterClosed()
+      .subscribe((name?: string) => {
+        if (!name) return;
+        const model = this.styleModel();
+        try {
+          const theme = this.store.saveTheme({
+            name,
+            base: model.theme,
+            handwritten: model.handwritten,
+            global: structuredClone(model.global),
+          });
+          this.snackBar.open(this.t().snack.themeSaved(theme.name), undefined, { duration: 3000 });
+        } catch {
+          this.snackBar.open(
+            this.t().snack.saveFailed(this.t().snack.storageFull),
+            this.t().common.ok,
+            { duration: 6000 },
+          );
+        }
+      });
+  }
+
+  private deleteCustomTheme(id: string): void {
+    const removed = this.store.removeTheme(id);
+    if (!removed) return;
+    this.snackBar
+      .open(this.t().snack.themeDeleted(removed.name), this.t().snack.undoAction, {
+        duration: 6000,
+      })
+      .onAction()
+      .subscribe(() => this.store.restoreTheme(removed));
   }
 
   // ==========================================================================

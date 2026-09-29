@@ -91,6 +91,8 @@ const en: Translations = {
     copyUnsupported: 'This browser does not support copying images.',
     svgCopied: 'SVG code copied to the clipboard.',
     copyFailed: 'Copying is not possible.',
+    themeSaved: (name) => `Theme “${name}” saved to local storage.`,
+    themeDeleted: (name) => `Theme “${name}” deleted.`,
   },
 
   preview: {
@@ -137,6 +139,14 @@ const en: Translations = {
     closeAria: 'Close style panel',
     theme: 'Theme',
     noTheme: '– No theme –',
+    customThemes: 'Custom themes',
+    plantumlThemes: 'PlantUML themes',
+    saveTheme: 'Save as custom theme',
+    saveThemeTitle: 'Save custom theme',
+    themeSaved: 'Matches a saved theme',
+    defaultThemeName: 'My theme',
+    deleteTheme: 'Delete theme',
+    deleteThemeAria: (name) => `Delete theme “${name}”`,
     handwritten: 'Hand-drawn',
     removeAllGlobal: 'Remove all diagram styles',
     lineColor: 'Line color',

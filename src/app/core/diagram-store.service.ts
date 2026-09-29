@@ -1,5 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import type { LanguagePreference } from '../i18n/languages';
+import type { GlobalSelector, StyleProps } from './plantuml-styles';
 
 export interface StoredDiagram {
   id: string;
@@ -21,7 +22,19 @@ export interface Draft {
   updatedAt: number;
 }
 
+/** A diagram-wide style saved by the user, offered in the theme selection. */
+export interface CustomTheme {
+  id: string;
+  name: string;
+  /** Built-in PlantUML theme the custom styles are layered on. */
+  base: string | null;
+  handwritten: boolean;
+  global: Partial<Record<GlobalSelector, StyleProps>>;
+  createdAt: number;
+}
+
 const LIST_KEY = 'pe.diagrams.v1';
+const THEMES_KEY = 'pe.themes.v1';
 const DRAFT_KEY = 'pe.draft.v1';
 const PREFS_KEY = 'pe.prefs.v1';
 const MAX_THUMBNAIL_CHARS = 150_000;
@@ -77,12 +90,18 @@ function write(key: string, value: unknown): boolean {
 export class DiagramStoreService {
   private readonly list = signal<StoredDiagram[]>(read<StoredDiagram[]>(LIST_KEY, []));
   readonly diagrams = computed(() => [...this.list()].sort((a, b) => b.updatedAt - a.updatedAt));
+  private readonly themeList = signal<CustomTheme[]>(read<CustomTheme[]>(THEMES_KEY, []));
+  /** Custom themes, alphabetically. */
+  readonly customThemes = computed(() =>
+    [...this.themeList()].sort((a, b) => a.name.localeCompare(b.name)),
+  );
   readonly prefs = signal<Prefs>({ ...DEFAULT_PREFS, ...read<Partial<Prefs>>(PREFS_KEY, {}) });
 
   constructor() {
     // Keep multiple tabs in sync.
     window.addEventListener('storage', (e) => {
       if (e.key === LIST_KEY) this.list.set(read<StoredDiagram[]>(LIST_KEY, []));
+      if (e.key === THEMES_KEY) this.themeList.set(read<CustomTheme[]>(THEMES_KEY, []));
     });
   }
 
@@ -161,6 +180,35 @@ export class DiagramStoreService {
     this.list.set(next);
   }
 
+  /** Saves a custom theme; an existing theme with the same name is overwritten. */
+  saveTheme(input: Omit<CustomTheme, 'id' | 'createdAt'>): CustomTheme {
+    const key = input.name.trim().toLocaleLowerCase();
+    const existing = this.themeList().find((t) => t.name.trim().toLocaleLowerCase() === key);
+    const theme: CustomTheme = existing
+      ? { ...existing, ...input }
+      : { ...input, id: crypto.randomUUID(), createdAt: Date.now() };
+    const next = existing
+      ? this.themeList().map((t) => (t.id === theme.id ? theme : t))
+      : [...this.themeList(), theme];
+    if (!write(THEMES_KEY, next)) throw new StorageFullError();
+    this.themeList.set(next);
+    return theme;
+  }
+
+  removeTheme(id: string): CustomTheme | undefined {
+    const theme = this.themeList().find((t) => t.id === id);
+    const next = this.themeList().filter((t) => t.id !== id);
+    write(THEMES_KEY, next);
+    this.themeList.set(next);
+    return theme;
+  }
+
+  restoreTheme(theme: CustomTheme): void {
+    const next = [...this.themeList().filter((t) => t.id !== theme.id), theme];
+    write(THEMES_KEY, next);
+    this.themeList.set(next);
+  }
+
   loadDraft(): Draft | null {
     return read<Draft | null>(DRAFT_KEY, null);
   }
@@ -178,7 +226,7 @@ export class DiagramStoreService {
   /** Approximate bytes used by this app in localStorage. */
   usageBytes(): number {
     let total = 0;
-    for (const key of [LIST_KEY, DRAFT_KEY, PREFS_KEY])
+    for (const key of [LIST_KEY, DRAFT_KEY, PREFS_KEY, THEMES_KEY])
       total += (localStorage.getItem(key)?.length ?? 0) * 2;
     return total;
   }

@@ -42,17 +42,58 @@
     @case ('global') {
       @let ctx = $any(context());
       <section class="group">
-        <div class="field">
+        <div class="theme-row">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full">
             <mat-label>{{ tr.theme }}</mat-label>
-            <mat-select [value]="ctx.model.theme" (valueChange)="themeChange($event)">
-              <mat-option [value]="null">{{ tr.noTheme }}</mat-option>
-              @for (t of ctx.themes; track t.id) {
-                <mat-option [value]="t.id">{{ t.label }}</mat-option>
+            <mat-select
+              [value]="themeValue()"
+              (valueChange)="themeChange($event)"
+              panelClass="pe-theme-panel"
+            >
+              <mat-select-trigger>
+                @if (ctx.activeCustomTheme) {
+                  <mat-icon class="trigger-icon">bookmark</mat-icon>
+                }
+                {{ themeTriggerLabel() }}
+              </mat-select-trigger>
+              @if (ctx.customThemes.length) {
+                <mat-optgroup [label]="tr.customThemes">
+                  @for (ct of ctx.customThemes; track ct.id) {
+                    <mat-option [value]="customValue(ct.id)" class="custom-theme-option">
+                      <mat-icon>bookmark</mat-icon>
+                      <span class="ct-name">{{ ct.name }}</span>
+                      <button
+                        mat-icon-button
+                        class="ct-delete"
+                        (click)="deleteTheme($event, ct.id)"
+                        [matTooltip]="tr.deleteTheme"
+                        [attr.aria-label]="tr.deleteThemeAria(ct.name)"
+                      >
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </mat-option>
+                  }
+                </mat-optgroup>
               }
+              <mat-optgroup [label]="tr.plantumlThemes">
+                <mat-option [value]="null">{{ tr.noTheme }}</mat-option>
+                @for (t of ctx.themes; track t.id) {
+                  <mat-option [value]="t.id">{{ t.label }}</mat-option>
+                }
+              </mat-optgroup>
             </mat-select>
             <mat-icon matPrefix>palette</mat-icon>
           </mat-form-field>
+          <button
+            mat-icon-button
+            class="save-theme"
+            [disabled]="!hasGlobalValues() || !!ctx.activeCustomTheme"
+            (click)="change.emit({ type: 'save-theme' })"
+            [matTooltip]="ctx.activeCustomTheme ? tr.themeSaved : tr.saveTheme"
+            [attr.aria-label]="tr.saveTheme"
+          >
+            <mat-icon>{{ ctx.activeCustomTheme ? 'bookmark_added' : 'bookmark_add' }}</mat-icon>
+          </button>
         </div>
         <mat-slide-toggle [checked]="ctx.model.handwritten" (change)="handwritten($event.checked)">
           {{ tr.handwritten }}

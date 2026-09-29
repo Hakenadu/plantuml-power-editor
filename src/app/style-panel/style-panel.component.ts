@@ -29,7 +29,14 @@ import { I18nService } from '../i18n/i18n.service';
 export type StyleContext =
   | { mode: 'element'; label: string; kindLabel: string; props: StyleProps; line?: number }
   | { mode: 'link'; label: string; style: LinkStyle; sequence: boolean; line?: number }
-  | { mode: 'global'; model: StyleModel; themes: { id: string; label: string }[] };
+  | {
+      mode: 'global';
+      model: StyleModel;
+      themes: { id: string; label: string }[];
+      customThemes: { id: string; name: string }[];
+      /** Custom theme whose styles match the diagram exactly, if any. */
+      activeCustomTheme: string | null;
+    };
 
 export type StyleChange =
   | { type: 'element'; key: StylePropKey; value: string | number | undefined }
@@ -42,8 +49,14 @@ export type StyleChange =
       value: string | number | undefined;
     }
   | { type: 'theme'; theme: string | null }
+  | { type: 'custom-theme'; id: string }
+  | { type: 'save-theme' }
+  | { type: 'delete-theme'; id: string }
   | { type: 'handwritten'; value: boolean }
   | { type: 'global-reset' };
+
+/** Select values of custom themes are prefixed so they cannot clash with PlantUML theme ids. */
+const CUSTOM_PREFIX = 'custom:';
 
 export const FONTS = [
   'sans-serif',
@@ -212,8 +225,36 @@ export class StylePanelComponent {
     this.change.emit({ type: 'link', style: next });
   }
 
-  themeChange(theme: string | null): void {
-    this.change.emit({ type: 'theme', theme });
+  /** Value of the theme select: the matching custom theme, else the PlantUML theme. */
+  readonly themeValue = computed(() => {
+    const ctx = this.context();
+    if (ctx.mode !== 'global') return null;
+    return ctx.activeCustomTheme ? CUSTOM_PREFIX + ctx.activeCustomTheme : ctx.model.theme;
+  });
+
+  /** Text shown in the closed theme select. */
+  readonly themeTriggerLabel = computed(() => {
+    const ctx = this.context();
+    if (ctx.mode !== 'global') return '';
+    if (ctx.activeCustomTheme)
+      return ctx.customThemes.find((t) => t.id === ctx.activeCustomTheme)?.name ?? '';
+    const theme = ctx.model.theme;
+    if (!theme) return this.t().stylePanel.noTheme;
+    return ctx.themes.find((t) => t.id === theme)?.label ?? theme;
+  });
+
+  readonly customValue = (id: string) => CUSTOM_PREFIX + id;
+
+  themeChange(value: string | null): void {
+    if (value?.startsWith(CUSTOM_PREFIX))
+      this.change.emit({ type: 'custom-theme', id: value.slice(CUSTOM_PREFIX.length) });
+    else this.change.emit({ type: 'theme', theme: value });
+  }
+
+  deleteTheme(event: Event, id: string): void {
+    // Keep the option from being selected by the same click.
+    event.stopPropagation();
+    this.change.emit({ type: 'delete-theme', id });
   }
 
   handwritten(value: boolean): void {

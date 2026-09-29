@@ -379,3 +379,17 @@ export function applyLinkStyle(line: string, style: LinkStyle, sequence: boolean
   }
   return line.slice(0, loc.index) + rebuilt + line.slice(loc.index + m[0].length);
 }
+
+/** The diagram-wide part of a style model (what a custom theme stores). */
+export type GlobalStyle = Pick<StyleModel, 'theme' | 'handwritten' | 'global'>;
+
+/** Canonical representation of the diagram-wide styles, for equality checks. */
+export function globalStyleKey(style: GlobalStyle): string {
+  const global = GLOBAL_SELECTORS.map((sel) => {
+    const props = Object.entries(style.global[sel] ?? {})
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .sort(([a], [b]) => a.localeCompare(b));
+    return [sel, props];
+  }).filter(([, props]) => props.length);
+  return JSON.stringify([style.theme ?? null, !!style.handwritten, global]);
+}
