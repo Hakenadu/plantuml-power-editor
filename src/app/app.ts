@@ -703,6 +703,9 @@ export class App {
       case 'export':
         this.exporter.downloadText(diagram.source, diagram.name);
         break;
+      case 'share':
+        void this.copyShareLink(diagram);
+        break;
       case 'delete': {
         const removed = this.store.remove(diagram.id);
         if (!removed) return;
@@ -835,9 +838,13 @@ export class App {
     }
   }
 
-  protected async copyShareLink(): Promise<void> {
+  /** Copies a share link for the given diagram, by default the one in the editor. */
+  protected async copyShareLink(diagram?: { name: string; source: string }): Promise<void> {
     try {
-      const url = await buildShareUrl({ name: this.name(), source: this.source() });
+      const url = await buildShareUrl({
+        name: diagram?.name ?? this.name(),
+        source: diagram?.source ?? this.source(),
+      });
       await navigator.clipboard.writeText(url);
       this.snackBar.open(this.t().snack.linkCopied, undefined, { duration: 2500 });
     } catch {

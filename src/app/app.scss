@@ -54,7 +54,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 100%;
+  // The negative margin shrinks .doc by 6px, so give them back or the name always gets clipped.
+  max-width: calc(100% + 6px);
   border: none;
   background: none;
   padding: 2px 6px;

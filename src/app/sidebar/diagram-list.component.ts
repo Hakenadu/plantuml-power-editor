@@ -11,7 +11,7 @@ import { detectDiagramType } from '../core/plantuml-analysis';
 import { I18nService } from '../i18n/i18n.service';
 
 export interface DiagramAction {
-  action: 'open' | 'rename' | 'duplicate' | 'delete' | 'export';
+  action: 'open' | 'rename' | 'duplicate' | 'delete' | 'export' | 'share';
   diagram: StoredDiagram;
 }
 
@@ -94,6 +94,9 @@ export interface DiagramAction {
             </button>
             <button mat-menu-item (click)="action.emit({ action: 'duplicate', diagram: d })">
               <mat-icon>content_copy</mat-icon>{{ tr.duplicate }}
+            </button>
+            <button mat-menu-item (click)="action.emit({ action: 'share', diagram: d })">
+              <mat-icon>link</mat-icon>{{ t().app.copyLink }}
             </button>
             <button mat-menu-item (click)="action.emit({ action: 'export', diagram: d })">
               <mat-icon>download</mat-icon>{{ tr.downloadPuml }}
