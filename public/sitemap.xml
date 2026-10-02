@@ -37,7 +37,7 @@
   </url>
   <url>
     <loc>https://plantuml-editor.com/privacy.html</loc>
-    <lastmod>2026-09-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/privacy.html"/>
@@ -46,7 +46,7 @@
   </url>
   <url>
     <loc>https://plantuml-editor.com/datenschutz.html</loc>
-    <lastmod>2026-09-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/privacy.html"/>
@@ -55,7 +55,7 @@
   </url>
   <url>
     <loc>https://plantuml-editor.com/terms.html</loc>
-    <lastmod>2026-09-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/terms.html"/>
@@ -64,7 +64,7 @@
   </url>
   <url>
     <loc>https://plantuml-editor.com/nutzungsbedingungen.html</loc>
-    <lastmod>2026-09-29</lastmod>
+    <lastmod>2026-10-02</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
     <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/terms.html"/>
@@ -88,5 +88,23 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/about.html"/>
     <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/ueber.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/about.html"/>
+  </url>
+  <url>
+    <loc>https://plantuml-editor.com/imprint.html</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/imprint.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/imprint.html"/>
+  </url>
+  <url>
+    <loc>https://plantuml-editor.com/impressum.html</loc>
+    <lastmod>2026-10-02</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://plantuml-editor.com/imprint.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://plantuml-editor.com/impressum.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://plantuml-editor.com/imprint.html"/>
   </url>
 </urlset>

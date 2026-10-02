@@ -19,5 +19,6 @@
 - [About this project](https://plantuml-editor.com/about.html): private project by a PlantUML fan, not affiliated with PlantUML; rendering happens locally via the official PlantUML JavaScript build
 - [Privacy policy](https://plantuml-editor.com/privacy.html): no cookies, no tracking; fonts and icons are self-hosted; third-party servers are only contacted for content users include themselves (e.g. the PlantUML standard library from plantuml.github.io)
 - [Terms of service](https://plantuml-editor.com/terms.html): private, free project, provided as is
+- [Legal notice](https://plantuml-editor.com/imprint.html): provider identification (German: impressum.html)
 - [Source code](https://github.com/Hakenadu/plantuml-power-editor)
 - [PlantUML language reference](https://plantuml.com/)

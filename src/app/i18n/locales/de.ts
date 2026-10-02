@@ -88,6 +88,8 @@ const de = {
     privacyUrl: 'datenschutz.html',
     terms: 'Nutzungsbedingungen',
     termsUrl: 'nutzungsbedingungen.html',
+    imprint: 'Impressum',
+    imprintUrl: 'impressum.html',
     jumpToEditor: 'Zum Editor springen',
     lineShort: (line: number) => `Z. ${line}`,
     adjustStyle: 'Style anpassen',

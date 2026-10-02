@@ -82,6 +82,8 @@ const en: Translations = {
     privacyUrl: 'privacy.html',
     terms: 'Terms of service',
     termsUrl: 'terms.html',
+    imprint: 'Legal notice',
+    imprintUrl: 'imprint.html',
     jumpToEditor: 'Jump to editor',
     lineShort: (line) => `L. ${line}`,
     adjustStyle: 'Adjust style',

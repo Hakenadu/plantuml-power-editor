@@ -113,7 +113,8 @@ Die App lädt von sich aus nichts von fremden Servern: Inter und JetBrains Mono 
 (`src/fonts/material-symbols-rounded.woff2`, ~28 KB statt ~5 MB), eingebunden in `src/fonts.scss`.
 Die Datenschutzerklärung liegt statisch unter `public/privacy.html` bzw. `public/datenschutz.html`
 (im Menü _Mehr → Datenschutz_), die Nutzungsbedingungen unter `public/terms.html` bzw.
-`public/nutzungsbedingungen.html` (_Mehr → Nutzungsbedingungen_) und die Info-Seite unter
+`public/nutzungsbedingungen.html` (_Mehr → Nutzungsbedingungen_), das Impressum unter
+`public/imprint.html` bzw. `public/impressum.html` (_Mehr → Impressum_) und die Info-Seite unter
 `public/about.html` bzw. `public/ueber.html` (_Mehr → Über dieses Projekt_).
 
 Einzige Ausnahme: `!include <…>` aus der PlantUML-Standardbibliothek lädt der Browser des

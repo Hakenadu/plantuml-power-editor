@@ -17,7 +17,8 @@ Angular 22 (zoneless, Signals, OnPush) + Angular Material. PlantUML rendert loka
 
 - UI-Texte nur über die Wörterbücher: `de.ts` ist die Referenz, jede andere Sprache muss dieselben
   Schlüssel haben (der Compiler meldet fehlende). Neue Texte immer in allen Sprachen ergänzen.
-- Statische Seiten (`about`/`ueber`, `privacy`/`datenschutz`, `terms`/`nutzungsbedingungen`) gibt es
+- Statische Seiten (`about`/`ueber`, `privacy`/`datenschutz`, `terms`/`nutzungsbedingungen`,
+  `imprint`/`impressum`) gibt es
   immer auf Deutsch und Englisch, verlinkt per `hreflang`, und sie stehen in `public/sitemap.xml`.
 - Nichts von fremden Servern laden (keine CDNs, keine Google Fonts). Ausnahme ist nur die
   PlantUML-Standardbibliothek bei `!include <…>`, die in der Datenschutzerklärung beschrieben ist.
