@@ -20,6 +20,8 @@ per TeaVM nach JavaScript kompiliert). Das Rendering läuft komplett im Browser,
   Hochformat, Tab-Navigation und Bottom-Sheets auf dem Smartphone; Pinch-Zoom, Pan und Long-Press werden
   unterstützt.
 - **Export** als SVG, PNG (1×/2×/4×, optional transparent), Kopieren in die Zwischenablage, Quelltext als `.puml`.
+- **Teilen per Link**: „Link zum Teilen kopieren“ im Export-Menü erzeugt `/#d/<payload>`. Das Fragment
+  enthält Name und Quelltext (raw deflate, base64url) und wird vom Browser nicht an den Server gesendet.
 - **Kontextmenü in der Vorschau** (Klick/Rechtsklick/Long-Press auf ein Element):
   - _Zum Editor springen_: markiert die zugehörige Zeile und scrollt dorthin.
   - _Style anpassen_: Live-Styling des Elements (Hintergrund, Rahmen, Textfarbe, Schrift, Schriftgröße,

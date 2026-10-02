@@ -39,6 +39,7 @@ import { RenameDialogComponent } from './dialogs/rename-dialog.component';
 import { DiagramError, PlantUmlEngineService } from './core/plantuml-engine.service';
 import { DiagramStoreService, StorageFullError, StoredDiagram } from './core/diagram-store.service';
 import { ExportService } from './core/export.service';
+import { buildShareUrl, decodeSharedDiagram, sharedDataFromHash } from './core/share-link';
 import { detectDiagramType } from './core/plantuml-analysis';
 import { DiagramTarget, TargetKind, resolveTarget } from './core/diagram-targets';
 import {
@@ -105,6 +106,7 @@ const ERROR_OTHER_LINE_MS = 350;
     '(window:keydown)': 'onGlobalKey($event)',
     '(window:resize)': 'onResize()',
     '(window:beforeunload)': 'flushDraft()',
+    '(window:hashchange)': 'openSharedLink()',
     '[class]': '"layout-" + layout()',
     '[style.--split]': 'splitRatio()',
   },
@@ -198,6 +200,7 @@ export class App {
   constructor() {
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
     this.restoreInitialState();
+    void this.openSharedLink();
     this.applyTheme();
     this.engine.load().then(
       () => setCompletionThemes(this.engine.themes().map((t) => t.id)),
@@ -583,6 +586,30 @@ export class App {
     }
   }
 
+  /** Opens the diagram carried by a share link (`/#d/<payload>`), see `share-link.ts`. */
+  protected async openSharedLink(): Promise<void> {
+    const data = sharedDataFromHash(location.hash);
+    if (!data) return;
+    // Drop the payload from the address bar so a reload keeps later edits.
+    history.replaceState(history.state, '', location.pathname + location.search);
+    try {
+      const shared = await decodeSharedDiagram(data);
+      if (shared.source === this.source()) return;
+      const untouched = this.source() === this.initialSource();
+      this.replaceDocument(
+        {
+          id: null,
+          name: shared.name || this.t().app.untitled,
+          source: shared.source,
+          saved: null,
+        },
+        !untouched,
+      );
+    } catch {
+      this.snackBar.open(this.t().snack.linkInvalid, this.t().common.ok, { duration: 6000 });
+    }
+  }
+
   protected flushDraft(): void {
     clearTimeout(this.draftTimer);
     this.store.saveDraft({
@@ -797,6 +824,16 @@ export class App {
     try {
       await this.exporter.copySvg(svg);
       this.snackBar.open(this.t().snack.svgCopied, undefined, { duration: 2500 });
+    } catch {
+      this.snackBar.open(this.t().snack.copyFailed, this.t().common.ok, { duration: 4000 });
+    }
+  }
+
+  protected async copyShareLink(): Promise<void> {
+    try {
+      const url = await buildShareUrl({ name: this.name(), source: this.source() });
+      await navigator.clipboard.writeText(url);
+      this.snackBar.open(this.t().snack.linkCopied, undefined, { duration: 2500 });
     } catch {
       this.snackBar.open(this.t().snack.copyFailed, this.t().common.ok, { duration: 4000 });
     }
