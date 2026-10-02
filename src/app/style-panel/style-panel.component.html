@@ -75,10 +75,17 @@
                   }
                 </mat-optgroup>
               }
-              <mat-optgroup [label]="tr.plantumlThemes">
+              <mat-optgroup [label]="tr.builtinThemes">
                 <mat-option [value]="null">{{ tr.noTheme }}</mat-option>
                 @for (t of ctx.themes; track t.id) {
-                  <mat-option [value]="t.id">{{ t.label }}</mat-option>
+                  <mat-option [value]="t.id" class="builtin-theme-option">
+                    <span class="bt-swatch" [style.background]="t.swatch[0]">
+                      @for (c of t.swatch.slice(1); track $index) {
+                        <i [style.background]="c"></i>
+                      }
+                    </span>
+                    <span>{{ t.name }}</span>
+                  </mat-option>
                 }
               </mat-optgroup>
             </mat-select>

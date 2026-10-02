@@ -161,7 +161,7 @@ const en: Translations = {
     theme: 'Theme',
     noTheme: 'No theme',
     customThemes: 'Custom themes',
-    plantumlThemes: 'PlantUML themes',
+    builtinThemes: 'Built-in themes',
     saveTheme: 'Save as custom theme',
     saveThemeTitle: 'Save custom theme',
     themeSaved: 'Matches a saved theme',

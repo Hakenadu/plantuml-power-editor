@@ -22,6 +22,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { CodeEditorComponent } from './editor/code-editor.component';
 import { setCompletionThemes } from './editor/plantuml-completion';
+import { BUILTIN_THEMES, matchBuiltinTheme } from './core/builtin-themes';
 import { DiagramPreviewComponent, PreviewPointerEvent } from './preview/diagram-preview.component';
 import {
   StyleChange,
@@ -391,7 +392,8 @@ export class App {
       return {
         mode: 'global',
         model,
-        themes: this.engine.themes(),
+        themes: BUILTIN_THEMES,
+        activeTheme: matchBuiltinTheme(model),
         customThemes: custom,
         activeCustomTheme:
           custom.find((ct) => globalStyleKey({ ...ct, theme: ct.base }) === current)?.id ?? null,
@@ -486,8 +488,12 @@ export class App {
         break;
       }
       case 'theme': {
+        // Themes are complete looks: they replace the diagram-wide styles, "no theme" clears them.
+        const theme = BUILTIN_THEMES.find((bt) => bt.id === change.theme);
         const model = parseStyleModel(src);
-        model.theme = change.theme;
+        model.theme = null;
+        model.handwritten = theme?.handwritten ?? false;
+        model.global = structuredClone(theme?.global ?? {});
         src = applyStyleModel(src, model);
         break;
       }

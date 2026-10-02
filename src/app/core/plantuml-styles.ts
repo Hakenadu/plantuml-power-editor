@@ -36,16 +36,58 @@ export interface StyleProps {
 
 export type StylePropKey = keyof StyleProps;
 
+/**
+ * Selectors of the diagram-wide styles, in the order they are written. `title` comes before
+ * `element` because its rules leak onto all elements of component and use case diagrams unless
+ * a later rule overrides them. Type-specific selectors follow `element` so that they win.
+ * The style panel edits only a few of them, the others are used by the built-in themes.
+ */
 export const GLOBAL_SELECTORS = [
   'document',
   'root',
+  'title',
   'element',
+  'participant',
+  'actor',
+  'lifeLine',
+  'group',
+  'groupHeader',
+  'separator',
+  'reference',
+  'referenceHeader',
+  'box',
+  'class',
+  'object',
+  'map',
+  'package',
+  'component',
+  'node',
+  'database',
+  'cloud',
+  'rectangle',
+  'folder',
+  'frame',
+  'usecase',
+  'state',
+  'activity',
+  'diamond',
+  'partition',
+  'activityBar',
+  'start',
+  'stop',
+  'end',
+  'rootNode',
+  'leafNode',
   'arrow',
   'note',
-  'title',
   'legend',
 ] as const;
 export type GlobalSelector = (typeof GLOBAL_SELECTORS)[number];
+/** Selectors that have their own section in the style panel. */
+export type SectionSelector = Extract<
+  GlobalSelector,
+  'document' | 'root' | 'element' | 'arrow' | 'note' | 'title' | 'legend'
+>;
 
 export interface StyleModel {
   theme: string | null;

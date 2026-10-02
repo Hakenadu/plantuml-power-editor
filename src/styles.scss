@@ -167,6 +167,31 @@ mat-icon {
   }
 }
 
+/* Built-in themes in the theme select (overlay, hence global). */
+.pe-theme-panel .builtin-theme-option {
+  .mdc-list-item__primary-text {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .bt-swatch {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 5px 6px;
+    border-radius: 8px;
+    border: 1px solid var(--mat-sys-outline-variant);
+
+    i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 1px rgb(128 128 128 / 0.35);
+    }
+  }
+}
+
 /* Custom themes in the theme select (overlay, hence global). */
 .pe-theme-panel .custom-theme-option {
   padding-right: 4px;

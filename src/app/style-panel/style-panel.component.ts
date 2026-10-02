@@ -21,8 +21,9 @@ import {
   StyleModel,
   StyleProps,
   StylePropKey,
-  GlobalSelector,
+  SectionSelector,
 } from '../core/plantuml-styles';
+import { BuiltinTheme } from '../core/builtin-themes';
 import { ColorFieldComponent } from './color-field.component';
 import { I18nService } from '../i18n/i18n.service';
 
@@ -32,7 +33,9 @@ export type StyleContext =
   | {
       mode: 'global';
       model: StyleModel;
-      themes: { id: string; label: string }[];
+      themes: BuiltinTheme[];
+      /** Built-in theme whose styles match the diagram exactly, if any. */
+      activeTheme: string | null;
       customThemes: { id: string; name: string }[];
       /** Custom theme whose styles match the diagram exactly, if any. */
       activeCustomTheme: string | null;
@@ -44,7 +47,7 @@ export type StyleChange =
   | { type: 'link'; style: LinkStyle }
   | {
       type: 'global';
-      selector: GlobalSelector;
+      selector: SectionSelector;
       key: StylePropKey;
       value: string | number | undefined;
     }
@@ -55,7 +58,7 @@ export type StyleChange =
   | { type: 'handwritten'; value: boolean }
   | { type: 'global-reset' };
 
-/** Select values of custom themes are prefixed so they cannot clash with PlantUML theme ids. */
+/** Select values of custom themes are prefixed so they cannot clash with built-in theme ids. */
 const CUSTOM_PREFIX = 'custom:';
 
 export const FONTS = [
@@ -78,7 +81,7 @@ export const FONTS = [
 ];
 
 interface SectionDef {
-  selector: GlobalSelector;
+  selector: SectionSelector;
   icon: string;
   fields: StylePropKey[];
 }
@@ -169,7 +172,7 @@ export class StylePanelComponent {
   readonly fonts = FONTS;
   readonly sections = GLOBAL_SECTIONS;
   readonly elementFields = ELEMENT_FIELDS;
-  readonly activeSection = signal<GlobalSelector>('element');
+  readonly activeSection = signal<SectionSelector>('element');
 
   readonly section = computed(
     () => this.sections.find((s) => s.selector === this.activeSection()) ?? this.sections[0],
@@ -195,7 +198,7 @@ export class StylePanelComponent {
     return ctx.mode === 'element' && Object.keys(ctx.props).length > 0;
   });
 
-  sectionHasValues(sel: GlobalSelector): boolean {
+  sectionHasValues(sel: SectionSelector): boolean {
     const ctx = this.context();
     return ctx.mode === 'global' && Object.keys(ctx.model.global[sel] ?? {}).length > 0;
   }
@@ -225,11 +228,11 @@ export class StylePanelComponent {
     this.change.emit({ type: 'link', style: next });
   }
 
-  /** Value of the theme select: the matching custom theme, else the PlantUML theme. */
+  /** Value of the theme select: the matching custom theme, else the matching built-in theme. */
   readonly themeValue = computed(() => {
     const ctx = this.context();
     if (ctx.mode !== 'global') return null;
-    return ctx.activeCustomTheme ? CUSTOM_PREFIX + ctx.activeCustomTheme : ctx.model.theme;
+    return ctx.activeCustomTheme ? CUSTOM_PREFIX + ctx.activeCustomTheme : ctx.activeTheme;
   });
 
   /** Text shown in the closed theme select. */
@@ -238,9 +241,7 @@ export class StylePanelComponent {
     if (ctx.mode !== 'global') return '';
     if (ctx.activeCustomTheme)
       return ctx.customThemes.find((t) => t.id === ctx.activeCustomTheme)?.name ?? '';
-    const theme = ctx.model.theme;
-    if (!theme) return this.t().stylePanel.noTheme;
-    return ctx.themes.find((t) => t.id === theme)?.label ?? theme;
+    return ctx.themes.find((t) => t.id === ctx.activeTheme)?.name ?? this.t().stylePanel.noTheme;
   });
 
   readonly customValue = (id: string) => CUSTOM_PREFIX + id;

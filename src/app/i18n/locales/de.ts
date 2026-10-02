@@ -1,6 +1,6 @@
 import type { DiagramType } from '../../core/plantuml-analysis';
 import type { TargetKind } from '../../core/diagram-targets';
-import type { GlobalSelector, StylePropKey } from '../../core/plantuml-styles';
+import type { SectionSelector, StylePropKey } from '../../core/plantuml-styles';
 import type { TemplateId } from '../../core/templates';
 import { table } from '../translations';
 
@@ -191,7 +191,7 @@ const de = {
     theme: 'Theme',
     noTheme: 'Kein Theme',
     customThemes: 'Eigene Themes',
-    plantumlThemes: 'PlantUML-Themes',
+    builtinThemes: 'Vordefinierte Themes',
     saveTheme: 'Als eigenes Theme speichern',
     saveThemeTitle: 'Eigenes Theme speichern',
     themeSaved: 'Entspricht einem gespeicherten Theme',
@@ -219,7 +219,7 @@ const de = {
       'In Sequenzdiagrammen unterstützt PlantUML für Nachrichten Farbe und Linienart, aber keine Linienstärke.',
     removeLinkStyle: 'Style der Verbindung entfernen',
     removeElementStyles: 'Styles dieses Elements entfernen',
-    sections: table<GlobalSelector>({
+    sections: table<SectionSelector>({
       document: 'Hintergrund',
       root: 'Schrift',
       element: 'Elemente',
