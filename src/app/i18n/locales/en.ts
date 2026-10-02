@@ -182,7 +182,8 @@ const en: Translations = {
     left: 'Left',
     center: 'Center',
     right: 'Right',
-    sequenceNote: 'In sequence diagrams, PlantUML mainly supports the color for messages.',
+    sequenceNote:
+      'In sequence diagrams, PlantUML supports color and line style for messages, but no line thickness.',
     removeLinkStyle: 'Remove connection style',
     removeElementStyles: 'Remove styles of this element',
     sections: {

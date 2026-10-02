@@ -53,6 +53,11 @@ export interface StyleModel {
   global: Partial<Record<GlobalSelector, StyleProps>>;
   /** Per-element styles keyed by stereotype class name (`pe_...`). */
   elements: Record<string, StyleProps>;
+  /**
+   * Stereotypes of elements whose declaration line was added by the style editor (the element
+   * was only used implicitly before). These lines are removed again when the styles are reset.
+   */
+  declared: string[];
 }
 
 export const emptyStyleModel = (): StyleModel => ({
@@ -60,7 +65,10 @@ export const emptyStyleModel = (): StyleModel => ({
   handwritten: false,
   global: {},
   elements: {},
+  declared: [],
 });
+
+const DECLARED_PREFIX = "' declared:";
 
 const NUMERIC_PROPS = new Set<StylePropKey>([
   'FontSize',
@@ -105,6 +113,8 @@ export function parseStyleModel(source: string): StyleModel {
     } else if (/^(!option|skinparam)\s+handwritten\s+true/i.test(line)) {
       // `skinparam handwritten` is deprecated (renders a warning banner); it is migrated on the next save.
       model.handwritten = true;
+    } else if (line.startsWith(DECLARED_PREFIX)) {
+      model.declared = line.slice(DECLARED_PREFIX.length).trim().split(/\s+/).filter(Boolean);
     } else if ((m = /^([.\w-]+)\s*\{$/.exec(line))) {
       selector = m[1];
     } else if (line === '}') {
@@ -140,6 +150,9 @@ export function serializeStyleModel(model: StyleModel): string[] {
   if (style.length) body.push('<style>', ...style, '</style>');
   for (const id of elementIds) {
     if (Object.keys(model.elements[id]).length) body.push(`hide <<${id}>> stereotype`);
+  }
+  if (body.length && model.declared.length) {
+    body.push(`${DECLARED_PREFIX} ${[...new Set(model.declared)].sort().join(' ')}`);
   }
   return body.length ? [STYLE_BLOCK_BEGIN, ...body, STYLE_BLOCK_END] : [];
 }
@@ -187,6 +200,8 @@ export interface StereotypeResult {
   stereotype: string;
   /** 1-based line that carries the stereotype. */
   line: number;
+  /** Stereotypes of the elements whose declaration line was newly inserted. */
+  declared?: string[];
 }
 
 /**
@@ -255,11 +270,16 @@ export function ensureElementStereotype(
     );
     const extra = leftOfEl.map((e) => `participant ${/[^\w.]/.test(e.id) ? `"${e.id}"` : e.id}`);
     lines.splice(insertAt, 0, ...extra, decl);
-    return { source: lines.join(eol), stereotype, line: insertAt + extra.length + 1 };
+    return {
+      source: lines.join(eol),
+      stereotype,
+      line: insertAt + extra.length + 1,
+      declared: [...leftOfEl.map((e) => stereotypeFor(e.id)), stereotype],
+    };
   }
   insertAt = Math.max(insertAt, insertionLineAfterStart(source) - 1);
   lines.splice(insertAt, 0, decl);
-  return { source: lines.join(eol), stereotype, line: insertAt + 1 };
+  return { source: lines.join(eol), stereotype, line: insertAt + 1, declared: [stereotype] };
 }
 
 /** 1-based line carrying `<<stereotype>>` outside the managed style block, or null. */
@@ -292,19 +312,69 @@ function insertStereotypeIntoDeclaration(line: string, marker: string): string |
     'i',
   );
   const bracket = /^(\s*(?:\[[^\]]+\]|\([^)]+\))(?:\s+as\s+[\w.]+)?(?:\s*<<[^>]+>>)*)/;
-  const m = re.exec(line) ?? bracket.exec(line);
+  // `note "text" as N1`, `note as N1` and the interface circle `() "Health" as HC`.
+  const note = /^(\s*note\s+(?:"[^"]*"\s+)?as\s+[\w.]+(?:\s*<<[^>]+>>)*)/i;
+  const circle = /^(\s*\(\)\s*(?:"[^"]+"|[\w.]+)(?:\s+as\s+[\w.]+)?(?:\s*<<[^>]+>>)*)/;
+  const m = note.exec(line) ?? circle.exec(line) ?? re.exec(line) ?? bracket.exec(line);
   if (!m) return null;
   return `${m[1]} ${marker}${line.slice(m[1].length)}`;
 }
 
-/** Removes the element stereotype from the source (used when all its styles are reset). */
-export function removeElementStereotype(source: string, stereotype: string): string {
+const BARE_DECLARATION =
+  /^\s*(?:participant|class|state|usecase|component|object)\s+("[^"]+"|\[[^\]]+\]|\([^)]+\)|[\w.]+)\s*$/;
+
+/**
+ * Stereotype of the element a line declares, if that line was inserted by the style editor
+ * (see `StyleModel.declared`). Our own `<<pe_...>>` markers are ignored.
+ */
+function insertedDeclaration(line: string, declared: string[]): string | null {
+  const m = BARE_DECLARATION.exec(line.replace(/\s*<<pe_\w+>>/g, ''));
+  if (!m) return null;
+  const stereotype = stereotypeFor(m[1].replace(/^["[(]|["\])]$/g, ''));
+  return declared.includes(stereotype) ? stereotype : null;
+}
+
+/**
+ * Removes the element stereotype from the source (used when all its styles are reset).
+ * A declaration line that the style editor inserted itself is removed completely, together
+ * with the plain declarations inserted above it to keep the participant order. Returns the
+ * new source and the remaining `declared` list.
+ */
+export function removeElementStereotype(
+  source: string,
+  stereotype: string,
+  declared: string[] = [],
+): { source: string; declared: string[] } {
   const eol = source.includes('\r\n') ? '\r\n' : '\n';
   const re = new RegExp(String.raw`\s*<<${escapeRe(stereotype)}>>`, 'g');
-  return source
-    .split(/\r\n|\r|\n/)
-    .map((l) => (l.trim() === '' ? l : l.replace(re, '')))
-    .join(eol);
+  const lines = source.split(/\r\n|\r|\n/);
+  let remaining = declared;
+  const block = findBlock(lines);
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim() === '' || !re.test(lines[i])) continue;
+    re.lastIndex = 0;
+    const ours = insertedDeclaration(lines[i], remaining) === stereotype;
+    lines[i] = lines[i].replace(re, '');
+    // The managed block (`hide <<...>> stereotype`) is rewritten by the caller anyway.
+    if (block && i >= block.start && i <= block.end) continue;
+    if (!ours) {
+      remaining = remaining.filter((s) => s !== stereotype);
+      continue;
+    }
+    // Keep the line while a following inserted declaration still relies on its position.
+    if (insertedDeclaration(lines[i + 1] ?? '', remaining)) continue;
+    lines.splice(i, 1);
+    remaining = remaining.filter((s) => s !== stereotype);
+    for (let j = i - 1; j >= 0; j--) {
+      const above = insertedDeclaration(lines[j], remaining);
+      if (!above || /<<pe_\w+>>/.test(lines[j])) break;
+      lines.splice(j, 1);
+      remaining = remaining.filter((s) => s !== above);
+      i--;
+    }
+    i--;
+  }
+  return { source: lines.join(eol), declared: remaining };
 }
 
 // ---------------------------------------------------------------------------
@@ -320,7 +390,16 @@ export interface LinkStyle {
 const ARROW_RE =
   /(<\|?|[*o}x#+^])?([-.=~]+)(\[[^\]]*\])?((?:up|down|left|right|u|d|l|r)?[-.=~]*)(\|?>{1,2}|[*o{x#+^]|\\\\|\/\/|\\|\/)?/;
 
+/** Dividers (`== Title ==`), delays (`...`), spacers (`|||`) and member separators are no arrows. */
+const NOT_A_LINK = /^\s*(==|\.\.\.|\|\|\||__|--\s*$|\.\.\s*$|--.*--\s*$|\.\..*\.\.\s*$)/;
+
+/** Whether the line carries an arrow that `applyLinkStyle` can style. */
+export function isStyleableLink(line: string): boolean {
+  return locateArrow(line) !== null;
+}
+
 function locateArrow(line: string): { index: number; match: RegExpExecArray } | null {
+  if (NOT_A_LINK.test(line)) return null;
   // Skip the part after the message label (`: ...`).
   const colon = line.search(/\s:\s|:(?=[^>\-]*$)/);
   const head = colon > 0 ? line.slice(0, colon) : line;
@@ -362,8 +441,9 @@ export function applyLinkStyle(line: string, style: LinkStyle, sequence: boolean
   const parts: string[] = [];
   if (style.color) parts.push(style.color);
   if (style.style && style.style !== 'plain') parts.push(style.style);
-  if (style.thickness) parts.push(`thickness=${style.thickness}`);
-  const bracket = parts.length ? `[${parts.join(sequence ? ';' : ',')}]` : '';
+  // Sequence messages accept a color and a line style, but no thickness.
+  if (style.thickness && !sequence) parts.push(`thickness=${style.thickness}`);
+  const bracket = parts.length ? `[${parts.join(',')}]` : '';
 
   const pre = m[1] ?? '';
   const body1 = m[2] ?? '';

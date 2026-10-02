@@ -173,19 +173,21 @@
           </mat-button-toggle-group>
         </div>
 
-        <div class="field">
-          <div class="label-row">
-            <span class="label">{{ tr.lineThickness }}</span>
-            <span class="val">{{ ls.thickness ?? t().common.standard }}</span>
+        @if (!$any(context()).sequence) {
+          <div class="field">
+            <div class="label-row">
+              <span class="label">{{ tr.lineThickness }}</span>
+              <span class="val">{{ ls.thickness ?? t().common.standard }}</span>
+            </div>
+            <mat-slider min="0" max="8" step="1" discrete>
+              <input
+                matSliderThumb
+                [value]="ls.thickness ?? 0"
+                (input)="emitLink({ thickness: +$any($event.target).value || undefined })"
+              />
+            </mat-slider>
           </div>
-          <mat-slider min="0" max="8" step="1" discrete>
-            <input
-              matSliderThumb
-              [value]="ls.thickness ?? 0"
-              (input)="emitLink({ thickness: +$any($event.target).value || undefined })"
-            />
-          </mat-slider>
-        </div>
+        }
       </section>
       @if ($any(context()).sequence) {
         <p class="note">

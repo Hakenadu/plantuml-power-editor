@@ -212,7 +212,8 @@ const de = {
     left: 'Links',
     center: 'Zentriert',
     right: 'Rechts',
-    sequenceNote: 'In Sequenzdiagrammen unterstützt PlantUML für Nachrichten vor allem die Farbe.',
+    sequenceNote:
+      'In Sequenzdiagrammen unterstützt PlantUML für Nachrichten Farbe und Linienart, aber keine Linienstärke.',
     removeLinkStyle: 'Style der Verbindung entfernen',
     removeElementStyles: 'Styles dieses Elements entfernen',
     sections: table<GlobalSelector>({

@@ -156,6 +156,9 @@ export function detectDiagramType(source: string): DiagramType {
     )
       add('class', 3);
     if (/(<\|--|--\|>|\*--|--\*|o--|--o|\.\.\|>|<\|\.\.)/.test(l)) add('class', 2);
+    // Entity relationship diagrams: `entity X {` bodies and crow's foot relations.
+    if (/^entity\b.*\{\s*$/i.test(l)) add('class', 3);
+    if (/[|}][|o](--|\.\.|-\[|\.\[)|(--|\.\.|\]-|\]\.)[|o][|{]/.test(l)) add('class', 2);
     if (/^\s*[+\-#~]\s*\w+\s*\(/.test(line) || /^\s*\{(static|abstract)\}/.test(l)) add('class', 1);
     if (
       /^(start|stop|end|endif|endwhile|fork|repeat|detach|kill)\s*$/i.test(l) ||
@@ -244,6 +247,11 @@ export function collectElements(
   const declRe = new RegExp(String.raw`^\s*(${kwPattern})\s+${NAME}(?:\s+as\s+${NAME})?`, 'i');
   const bracketDecl = /^\s*\[([^\]]+)\](?:\s+as\s+([\w.]+))?/;
   const parenDecl = /^\s*\(([^)]+)\)(?:\s+as\s+([\w.]+))?/;
+  // `() "Health" as HC` (interface circle) and `note "text" as N1` / `note as N1`.
+  const circleDecl = /^\s*\(\)\s*("[^"]+"|[\w.]+)(?:\s+as\s+([\w.]+))?/;
+  const noteDecl = /^\s*note\s+(?:"([^"]*)"\s+)?as\s+([\w.]+)/i;
+  const isRelation = (line: string, declLength: number) =>
+    ARROW_IN_LINE.test(line.slice(declLength).trim().slice(0, 3));
 
   const lines = codeLines(source);
   lines.forEach((line, idx) => {
@@ -268,11 +276,14 @@ export function collectElements(
     }
     if (type !== 'sequence') {
       const b = bracketDecl.exec(line);
-      if (b && !ARROW_IN_LINE.test(line.slice(b[0].length).trim().slice(0, 3))) {
-        put(b[2] ?? b[1], b[1], 'component', n, true);
-      }
+      if (b && !isRelation(line, b[0].length)) put(b[2] ?? b[1], b[1], 'component', n, true);
       const p = parenDecl.exec(line);
-      if (p && type === 'usecase') put(p[2] ?? p[1], p[1], 'usecase', n, true);
+      if (p && type === 'usecase' && !isRelation(line, p[0].length))
+        put(p[2] ?? p[1], p[1], 'usecase', n, true);
+      const c = circleDecl.exec(line);
+      if (c && !isRelation(line, c[0].length)) put(c[2] ?? c[1], c[1], 'interface', n, true);
+      const note = noteDecl.exec(line);
+      if (note) put(note[2], note[1] || note[2], 'note', n, true);
     }
   });
 
@@ -299,6 +310,22 @@ export function collectElements(
   });
 
   return [...result.values()];
+}
+
+const NO_ELEMENT_STYLES = new Set<DiagramType>([
+  'gantt',
+  'mindmap',
+  'wbs',
+  'json',
+  'yaml',
+  'salt',
+  'timing',
+  'other',
+]);
+
+/** Whether single elements can be styled through a `<<pe_...>>` stereotype in this diagram type. */
+export function supportsElementStyles(type: DiagramType): boolean {
+  return !NO_ELEMENT_STYLES.has(type);
 }
 
 /** Returns a 1-based line number where content can be inserted after `@startuml` (and the managed style block). */

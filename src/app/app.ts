@@ -48,6 +48,7 @@ import {
   emptyStyleModel,
   ensureElementStereotype,
   findStereotypeLine,
+  isStyleableLink,
   parseLinkStyle,
   parseStyleModel,
   removeElementStereotype,
@@ -342,7 +343,10 @@ export class App {
 
   protected canStyle(t: DiagramTarget | null): boolean {
     if (!t) return false;
-    if (t.kind === 'link' || t.kind === 'message') return !!t.line;
+    if (t.kind === 'link' || t.kind === 'message') {
+      // Dividers, group headers and notes resolve to a line as well, but carry no arrow.
+      return !!t.line && isStyleableLink(this.source().split(/\r\n|\r|\n/)[t.line - 1] ?? '');
+    }
     if (t.kind === 'activity') return !!t.line;
     return t.kind === 'element' && !!t.elementId;
   }
@@ -421,6 +425,7 @@ export class App {
       case 'element-reset': {
         if (t.mode !== 'element') return;
         const stereotype = stereotypeFor(t.elementId);
+        let inserted: string[] = [];
         if (change.type === 'element' && change.value !== undefined) {
           const res = ensureElementStereotype(src, this.diagramType(), {
             id: t.elementId,
@@ -435,8 +440,10 @@ export class App {
             return;
           }
           src = res.source;
+          inserted = res.declared ?? [];
         }
         const model = parseStyleModel(src);
+        model.declared = [...model.declared, ...inserted];
         const props = { ...(model.elements[stereotype] ?? {}) };
         if (change.type === 'element-reset') {
           for (const k of Object.keys(props)) delete props[k as keyof typeof props];
@@ -449,7 +456,9 @@ export class App {
           model.elements[stereotype] = props;
         } else {
           delete model.elements[stereotype];
-          src = removeElementStereotype(src, stereotype);
+          const removed = removeElementStereotype(src, stereotype, model.declared);
+          src = removed.source;
+          model.declared = removed.declared;
         }
         src = applyStyleModel(src, model);
         break;
@@ -505,6 +514,7 @@ export class App {
         const model = parseStyleModel(src);
         const next = emptyStyleModel();
         next.elements = model.elements;
+        next.declared = model.declared;
         src = applyStyleModel(src, next);
         break;
       }

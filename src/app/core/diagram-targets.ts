@@ -1,4 +1,10 @@
-import { DiagramType, codeLines, collectElements, escapeRe } from './plantuml-analysis';
+import {
+  DiagramType,
+  codeLines,
+  collectElements,
+  escapeRe,
+  supportsElementStyles,
+} from './plantuml-analysis';
 
 export type TargetKind = 'element' | 'link' | 'message' | 'activity' | 'text' | 'group';
 
@@ -17,6 +23,7 @@ export interface DiagramTarget {
   node?: SVGGraphicsElement;
 }
 
+const NON_ELEMENT_CLASS = /\b(title|caption|header|footer|legend)\b/;
 const SHAPES = 'rect, path, polygon, ellipse, circle, line, polyline, text, image';
 
 function textOf(el: Element): string {
@@ -74,6 +81,11 @@ export function resolveTarget(
     const qn = meta.getAttribute('data-qualified-name') ?? textOf(meta);
     const elementId = resolveElementId(qn, source, type);
     const special = qn.startsWith('.') || cls.includes('start') || cls.includes('end');
+    // Titles, captions, anonymous notes etc. are no elements that could carry a stereotype.
+    if (NON_ELEMENT_CLASS.test(cls) || /^GMN\d+$/.test(qn) || !supportsElementStyles(type)) {
+      const label = firstText(meta) ?? short(qn);
+      return { kind: 'text', label, line, node: meta, bbox: bboxOf(meta) };
+    }
     return {
       kind: cls.includes('cluster') ? 'group' : 'element',
       label: special ? readableSpecial(qn, cls) : (firstText(meta) ?? short(qn)),
@@ -88,7 +100,9 @@ export function resolveTarget(
   const titled = clicked.closest('g');
   const title = titled?.querySelector(':scope > title')?.textContent?.trim();
   if (title && type === 'sequence') {
-    return participantTarget(title, source, type, titled as SVGGElement);
+    const id = participantForTitle(title, source, type);
+    if (id) return participantTarget(id, source, type, titled as SVGGElement);
+    return null;
   }
 
   // 3) Text based matching.
@@ -131,7 +145,9 @@ export function resolveTarget(
 
   const line = findAnyLine(source, label);
   if (!line) return null;
-  const element = collectElements(source, type).find((e) => e.label === label || e.id === label);
+  const element = supportsElementStyles(type)
+    ? collectElements(source, type).find((e) => e.label === label || e.id === label)
+    : undefined;
   const node = (findShapeFor(svg, text) ?? text) as SVGGraphicsElement;
   return element
     ? {
@@ -169,6 +185,24 @@ function resolveElementId(qualifiedName: string, source: string, type: DiagramTy
   if (elements.some((e) => e.id === qualifiedName)) return qualifiedName;
   const s = short(qualifiedName);
   return elements.find((e) => e.id === s || e.label === s)?.id ?? s;
+}
+
+/**
+ * Maps a lifeline `<title>` to a participant id. PlantUML writes the display name there with
+ * every non-ASCII character replaced by a dot, and only the stereotype (`..Service..` for
+ * `<<Service>>`) if the participant has one.
+ */
+function participantForTitle(title: string, source: string, type: DiagramType): string | null {
+  const ascii = (s: string) => s.replace(/[^\x20-\x7E]/g, '.');
+  const elements = collectElements(source, type);
+  const named = elements.find((e) => ascii(e.label) === title || ascii(e.id) === title);
+  if (named) return named.id;
+  const stereotype = /^\.\.(.+)\.\.$/.exec(title)?.[1];
+  if (!stereotype) return null;
+  const lines = codeLines(source);
+  const marker = new RegExp(`<<\\s*${escapeRe(stereotype).replace(/\\\./g, '.')}\\s*>>`);
+  const tagged = elements.filter((e) => e.explicit && marker.test(ascii(lines[e.line - 1] ?? '')));
+  return tagged.length === 1 ? tagged[0].id : null;
 }
 
 function participantTarget(
@@ -255,7 +289,9 @@ function findMessageLine(source: string, label: string, occurrence: number): num
 function findActivityLine(source: string, label: string, occurrence: number): number | null {
   const lines = codeLines(source);
   const hits: number[] = [];
-  const re = new RegExp(String.raw`^\s*(#\w+)?:\s*${escapeRe(label)}`);
+  // The label must end at a word boundary, so that a short text such as a `case (A)` label
+  // does not match the activity `:Archivieren;`.
+  const re = new RegExp(String.raw`^\s*(#\w+)?:\s*${escapeRe(label)}(?![\wÀ-ɏ])`);
   lines.forEach((l, i) => {
     if (re.test(l)) hits.push(i + 1);
   });
